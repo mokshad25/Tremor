@@ -4,16 +4,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: tremor:local
     ports:
       - "8000:8000"
-    # Pulls all configurations directly from .env
-    env_file: .env
+    # Pulls configuration from .env when present (cp .env.example .env);
+    # without it the app runs on its built-in defaults.
+    env_file:
+      - path: .env
+        required: false
     environment:
       # We override these just to be sure they match the volume mounts
       - DATABASE_URL=sqlite+aiosqlite:///./data/tremor.db
       - LOG_PATHS=./sample/app.log
+      # No AWS calls unless DRY_RUN=false is set in .env or the shell
+      - DRY_RUN=${DRY_RUN:-true}
     volumes:
-      - ./sample:/app/sample:ro
+      # Shared with the simulator. A Docker volume, not a host bind mount:
+      # on macOS, Docker Desktop does not show a container lines a host
+      # process appends to a file it keeps open.
+      - tremor-logs:/app/sample:ro
       - tremor-data:/app/data
     logging:
       driver: json-file
@@ -29,16 +38,37 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    # nginx serves the built dashboard on 8080 (unprivileged); open
+    # http://localhost:5173/dashboard. The browser connects straight to the
+    # backend's WebSocket on localhost:8000.
     ports:
-      - "5173:80"
+      - "5173:8080"
     depends_on:
       - app
     restart: unless-stopped
     networks:
       - tremor-net
 
+  # ── Log simulator (on demand) ───────────────────────────────────────
+  # Not started by `docker compose up`. Stream a scenario into the app with:
+  #   docker compose run --rm simulator
+  #   docker compose run --rm simulator --scenario drift --speed 10
+  simulator:
+    image: tremor:local
+    pull_policy: never
+    profiles: ["demo"]
+    entrypoint: ["python", "-m", "simulator.gen_logs"]
+    command: ["--scenario", "burst", "--speed", "10"]
+    volumes:
+      - tremor-logs:/app/sample
+    depends_on:
+      - app
+    networks:
+      - tremor-net
+
 volumes:
   tremor-data:
+  tremor-logs:
 
 networks:
   tremor-net:

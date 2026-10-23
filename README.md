@@ -84,7 +84,7 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-The defaults work as-is: no AWS account is needed, and alerts go to the dashboard and the local SQLite database (`tremor.db`). Set `DRY_RUN=true` in `.env` if you want to guarantee no AWS calls are ever made. Never commit `.env`; it is git-ignored.
+The defaults work as-is: `DRY_RUN=true` means no AWS account is needed and no AWS calls are made; alerts go to the dashboard and the local SQLite database (`tremor.db`). To send real alerts to SNS/CloudWatch, set `DRY_RUN=false` and configure AWS credentials. Never commit `.env`; it is git-ignored.
 
 ### 4. Terminal 1 — start the backend
 
@@ -145,18 +145,45 @@ Press `Ctrl+C` in each terminal, then `deactivate` to leave the virtual environm
 
 ---
 
-## Run the backend with Docker
+## Run everything with Docker
+
+Only Docker is needed: no Python or Node.js on your machine. Use **two terminals**.
+
+**Terminal 1 — start the backend and dashboard:**
 
 ```bash
-cp .env.example .env
-docker compose up --build app
+git clone https://github.com/mokshad25/Tremor.git
+cd Tremor
+docker compose up --build
 ```
 
-- Backend: http://localhost:8000 (check with `curl http://localhost:8000/health`)
-- The container tails `./sample/app.log` from your machine, so generate logs from the host with the simulator (step 5 above), and run the dashboard with `npm run dev` (step 6).
-- Stop with `Ctrl+C`, then `docker compose down` (add `-v` to also delete the stored alert database).
+- Dashboard: **http://localhost:5173/dashboard**
+- Backend API: http://localhost:8000 (check with `curl http://localhost:8000/health`)
 
-> Run `docker compose up --build app`, not a bare `docker compose up`: the `frontend` service in `docker-compose.yml` expects a `frontend/Dockerfile` that does not exist yet, so building it fails.
+**Terminal 2 — stream simulated logs into the running backend:**
+
+```bash
+docker compose run --rm simulator
+```
+
+This plays the `burst` scenario at 10x speed (about 90 seconds); watch the dashboard update live. Run any other scenario the same way:
+
+```bash
+docker compose run --rm simulator --scenario drift --speed 10
+```
+
+**Stop everything:**
+
+```bash
+docker compose down
+```
+
+Add `-v` (`docker compose down -v`) to also delete the stored alerts and logs.
+
+Notes:
+- A `.env` file is optional here. Without one the containers use safe defaults with `DRY_RUN=true` (no AWS calls). To customise, run `cp .env.example .env` and edit it before `docker compose up`.
+- Run in the background with `docker compose up --build -d`, and follow the backend logs with `docker compose logs -f app`.
+- The simulator writes into a Docker volume shared with the backend, rather than a folder on your machine: on macOS, Docker Desktop doesn't pass lines appended to an open host file through to the container until the file is closed.
 
 ---
 
@@ -278,7 +305,8 @@ python -m scripts.burst_sim
 | Dashboard shows zeros / no services | Logs aren't flowing. Keep the backend running and start the simulator (step 5); wait ~30 s for the baseline to warm up. |
 | `python3.12: command not found` | Install Python 3.12+ (macOS: `brew install python@3.12`), or use any `python3` that reports 3.12 or newer. |
 | `npm ci` fails | Check `node --version` is 22.13+ or 24. |
-| Docker build fails on `frontend` | Use `docker compose up --build app` (see the Docker section). |
+| Docker: `port is already allocated` | Port 8000 or 5173 is in use by another app. Stop it (`lsof -i :8000`), then `docker compose up --build` again. |
+| Docker dashboard stays empty | Start the simulator in a second terminal: `docker compose run --rm simulator`. |
 
 ---
 
@@ -299,7 +327,7 @@ All settings are environment variables with sane defaults. See [`.env.example`](
 | `ALERT_COOLDOWN_S` | `60` | Re-open within this reuses the incident id |
 | `SNS_TOPIC_ARN` | _(empty)_ | Set to send HIGH/CRITICAL alerts to SNS |
 | `AWS_ENDPOINT_URL` | _(empty)_ | `http://localhost:4566` for LocalStack |
-| `DRY_RUN` | `false` | Skip real AWS calls |
+| `DRY_RUN` | `true` in `.env.example` and Docker | Skip real AWS calls; set `false` to send alerts to SNS/CloudWatch |
 | `DEMO_MODE` | `false` | Enable the demo-only endpoints |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./tremor.db` | Database connection |
 
