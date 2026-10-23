@@ -1,0 +1,13 @@
+# Runs only the collector. TREMOR runs on the host (verify.sh starts it);
+# the full stack (TREMOR + Prometheus + Grafana) arrives in deploy/ in Phase 6.
+services:
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.136.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    environment:
+      TREMOR_EXPORTER: ${TREMOR_EXPORTER:-otlphttp/tremor}
+    volumes:
+      - ./config.yaml:/etc/otelcol/config.yaml:ro
+      - ${LOG_DIR:-./logs}:/data:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,56 @@
+{
+  "group": "attacks",
+  "scenario": "unusual_access/new_source @ 01-25 15:25",
+  "incident_id": "inc-448aa6d35c3f",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "a known user logs in from an address never seen for them",
+  "llm_input": {
+    "incident_id": "inc-448aa6d35c3f",
+    "kind": "security",
+    "opened_at": "2026-01-25T15:25:44Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "9cb1a94017564db28b66",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-25T15:25:44Z",
+        "reason": "login from a source this user never used, at 15:00 UTC when they never log in",
+        "observed": 77,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_c801fbdd7441",
+        "source": "ip_9fad674377b8"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "A HIGH severity security incident was opened on 2026-01-25 at 15:25 UTC for auth-service. An UNUSUAL_ACCESS alert flagged a single login by user usr_c801fbdd7441 from a previously unseen source ip_9fad674377b8 at 15:00 UTC, a time the user never logs in. The alert compared this login against a history of 77 prior successful logins for the same user.",
+    "likely_trigger": "A suspicious login from a new source at an atypical time, matching ATT\u0026CK technique T1078 (Valid Accounts).",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Review the user's recent authentication activity and any other logins from ip_9fad674377b8, and consider temporarily disabling the account pending investigation.",
+    "cited_alert_ids": [
+      "9cb1a94017564db28b66"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 687,
+    "completion_tokens": 381
+  }
+}

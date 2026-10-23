@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/sudo @ 01-23 10:50",
+  "incident_id": "inc-d86c462a07ed",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "an employee who never used sudo runs sudo to a root shell",
+  "llm_input": {
+    "incident_id": "inc-d86c462a07ed",
+    "kind": "security",
+    "opened_at": "2026-01-23T10:50:00Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "9477a149b8927dd93271",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-23T10:50:00Z",
+        "reason": "privilege elevation not seen for this user during the 24h0m0s baseline: \"sudo: \u003cUSER\u003e : TTY=pts/\u003cNUM\u003e ; PWD=/home/\u003cUSER\u003e ; USER=root ; COMMAND=/bin/bash\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1548.003"
+        ],
+        "user": "usr_757477679814"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-23T10:50:00Z a sudo command was executed on the sshd service that elevated user usr_757477679814 to root. This action was not observed in the 24‑hour baseline and triggered a HIGH‑severity PRIVILEGE_CHANGE alert. It is a single out‑of‑baseline event, making it unusual compared with normal activity.",
+    "likely_trigger": "An unexpected sudo privilege escalation by usr_757477679814, which was not present in the learned baseline.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Review the full sudo audit trail for usr_757477679814 and verify whether the command was authorized or indicative of credential compromise.",
+    "cited_alert_ids": [
+      "9477a149b8927dd93271"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 702,
+    "completion_tokens": 342
+  }
+}

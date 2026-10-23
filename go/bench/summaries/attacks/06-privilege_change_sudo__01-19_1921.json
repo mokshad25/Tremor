@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/sudo @ 01-19 19:21",
+  "incident_id": "inc-dab5da400e72",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "an employee who never used sudo runs sudo to a root shell",
+  "llm_input": {
+    "incident_id": "inc-dab5da400e72",
+    "kind": "security",
+    "opened_at": "2026-01-19T19:21:00Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "43cd65e967db28aa08d1",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-19T19:21:00Z",
+        "reason": "privilege elevation not seen for this user during the 24h0m0s baseline: \"sudo: \u003cUSER\u003e : TTY=pts/\u003cNUM\u003e ; PWD=/home/\u003cUSER\u003e ; USER=root ; COMMAND=/bin/bash\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1548.003"
+        ],
+        "user": "usr_9cf0f486f706"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-19T19:21:00Z a privilege escalation event was detected on the sshd service: user usr_9cf0f486f706 executed a sudo command to become root, which was not observed in the 24‑hour baseline. This is the only such event in the window and has been flagged as HIGH severity.",
+    "likely_trigger": "An unexpected sudo to root by usr_9cf0f486f706 (MITRE T1548.003) triggered the alert.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Inspect the ssh session and audit logs for usr_9cf0f486f706 to confirm whether the sudo command was authorized and to look for any further suspicious activity.",
+    "cited_alert_ids": [
+      "43cd65e967db28aa08d1"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 706,
+    "completion_tokens": 333
+  }
+}

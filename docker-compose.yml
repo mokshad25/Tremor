@@ -1,0 +1,45 @@
+services:
+  # ── TREMOR Backend ──────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    # Pulls all configurations directly from .env
+    env_file: .env
+    environment:
+      # We override these just to be sure they match the volume mounts
+      - DATABASE_URL=sqlite+aiosqlite:///./data/tremor.db
+      - LOG_PATHS=./sample/app.log
+    volumes:
+      - ./sample:/app/sample:ro
+      - tremor-data:/app/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: unless-stopped
+    networks:
+      - tremor-net
+
+  # ── Frontend ────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - app
+    restart: unless-stopped
+    networks:
+      - tremor-net
+
+volumes:
+  tremor-data:
+
+networks:
+  tremor-net:
+    driver: bridge

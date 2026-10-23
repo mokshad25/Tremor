@@ -1,0 +1,58 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/app @ 01-22 06:00",
+  "incident_id": "inc-afc60078a813",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "app login brute force from one IP against one employee",
+  "llm_input": {
+    "incident_id": "inc-afc60078a813",
+    "kind": "security",
+    "opened_at": "2026-01-22T06:00:56Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "1c546c9ea7df48d7553b",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-22T06:00:56Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_97ab30c511a2",
+        "source": "ip_1ba13798ca6a"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-22T06:00:56Z the auth-service raised a high‑severity BRUTE_FORCE alert after observing ten failed login attempts for user usr_97ab30c511a2 from source ip_1ba13798ca6a within a 300‑second window. This count exactly meets the rule’s trigger threshold, representing an abnormal spike compared with normal login patterns. The incident is classified as HIGH severity and is limited to the auth-service.",
+    "likely_trigger": "A rapid series of failed login attempts (brute‑force) from a single IP targeting a single user, matching MITRE ATT\u0026CK technique T1110.001.",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Review the auth-service logs for any successful login from usr_97ab30c511a2 or ip_1ba13798ca6a shortly after the window and confirm that rate‑limiting or lockout controls were applied.",
+    "cited_alert_ids": [
+      "1c546c9ea7df48d7553b"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 688,
+    "completion_tokens": 635
+  }
+}

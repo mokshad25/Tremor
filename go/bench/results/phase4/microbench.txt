@@ -1,0 +1,4 @@
+cpu: Apple M2
+BenchmarkRedact-8   	 1475434	      2426 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8   	 1480539	      2435 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8   	 1480484	      2455 ns/op	     712 B/op	      15 allocs/op

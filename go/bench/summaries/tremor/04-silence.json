@@ -1,0 +1,152 @@
+{
+  "group": "tremor",
+  "scenario": "silence",
+  "incident_id": "inc-9bdf36216360",
+  "severity": "HIGH",
+  "services": [
+    "ledger",
+    "payment-gateway"
+  ],
+  "alerts": 6,
+  "expected_services": [
+    "payment-gateway"
+  ],
+  "expected_trigger": "payment-gateway stops logging for 60 s",
+  "llm_input": {
+    "incident_id": "inc-9bdf36216360",
+    "kind": "anomaly",
+    "opened_at": "2026-01-05T14:03:45Z",
+    "severity": "HIGH",
+    "services": [
+      "ledger",
+      "payment-gateway"
+    ],
+    "alerts": [
+      {
+        "id": "d918ce4000178d9d66cb",
+        "type": "ERROR_RATE",
+        "status": "OPEN",
+        "severity": "INFO",
+        "service": "ledger",
+        "at": "2026-01-05T14:03:45Z",
+        "reason": "error rate 3.9% vs baseline 0.8% over the last 30 s",
+        "observed": 0.03870967741935484,
+        "baseline": 0.008175353739570438,
+        "z_score": 3.0534323679784405,
+        "lines_in_window": 155,
+        "errors_in_window": 6,
+        "window_seconds": 30
+      },
+      {
+        "id": "b22821d904c65d9d73dd",
+        "type": "ERROR_RATE",
+        "status": "RESOLVED",
+        "severity": "INFO",
+        "service": "ledger",
+        "at": "2026-01-05T14:04:23Z",
+        "reason": "resolved: error rate 1.1% vs baseline 0.8% over the last 30 s",
+        "observed": 0.010752688172043012,
+        "baseline": 0.008175353739570438,
+        "z_score": 0.2577334432472574,
+        "lines_in_window": 186,
+        "errors_in_window": 2,
+        "window_seconds": 30
+      },
+      {
+        "id": "e4a4ceff855584e7993d",
+        "type": "ERROR_RATE",
+        "status": "OPEN",
+        "severity": "INFO",
+        "service": "ledger",
+        "at": "2026-01-05T14:06:03Z",
+        "reason": "error rate 4.3% vs baseline 1.0% over the last 30 s",
+        "observed": 0.042682926829268296,
+        "baseline": 0.010071153115188277,
+        "z_score": 3.261177371408002,
+        "lines_in_window": 164,
+        "errors_in_window": 7,
+        "window_seconds": 30
+      },
+      {
+        "id": "de399b296244e4d4488f",
+        "type": "ERROR_RATE",
+        "status": "RESOLVED",
+        "severity": "INFO",
+        "service": "ledger",
+        "at": "2026-01-05T14:06:35Z",
+        "reason": "resolved: error rate 0.7% vs baseline 1.0% over the last 30 s",
+        "observed": 0.007194244604316547,
+        "baseline": 0.010071153115188277,
+        "z_score": -0.28769085108717296,
+        "lines_in_window": 139,
+        "errors_in_window": 1,
+        "window_seconds": 30
+      },
+      {
+        "id": "580eccba4bf5024516e4",
+        "type": "SILENCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "payment-gateway",
+        "at": "2026-01-05T14:08:10Z",
+        "reason": "log stream silent: no lines for 10 s",
+        "observed": 10.342999808,
+        "window_seconds": 30
+      },
+      {
+        "id": "482a97a0e0347c4414db",
+        "type": "SILENCE",
+        "status": "RESOLVED",
+        "severity": "HIGH",
+        "service": "payment-gateway",
+        "at": "2026-01-05T14:09:01Z",
+        "reason": "resolved: log stream resumed",
+        "observed": 0.075000064,
+        "window_seconds": 30
+      }
+    ],
+    "top_error_templates": [
+      {
+        "service": "ledger",
+        "template": "DB timeout posting \u003cID\u003e after \u003cNUM\u003e",
+        "error_lines_in_window": 3
+      },
+      {
+        "service": "ledger",
+        "template": "Webhook signing failed for endpoint \u003c*\u003e key=\u003cAPI_KEY\u003e",
+        "error_lines_in_window": 5
+      },
+      {
+        "service": "payment-gateway",
+        "template": "Acquirer timeout \u003cID\u003e after \u003cNUM\u003e upstream=\u003cIP\u003e",
+        "error_lines_in_window": 2
+      },
+      {
+        "service": "payment-gateway",
+        "template": "Payment failed \u003cID\u003e \u003c*\u003e for \u003cEMAIL\u003e",
+        "error_lines_in_window": 1
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-05 between 14:03 and 14:06 the ledger service experienced error rates of ~4% versus a baseline of \u003c1%, a several‑fold increase, driven by DB timeouts and webhook signing failures. Shortly after, at 14:08 the payment-gateway log stream went silent for about 10 seconds before resuming. Both spikes are markedly higher than normal activity.",
+    "likely_trigger": "A downstream dependency failure (e.g., database or acquirer timeout) is indicated by the error templates and aligns with the error‑rate spikes and log silence.",
+    "affected_services": [
+      "ledger",
+      "payment-gateway"
+    ],
+    "suggested_next_check": "Verify the health and latency of the database and acquirer services (and any recent deploys) for the 14:00‑14:10 window.",
+    "cited_alert_ids": [
+      "d918ce4000178d9d66cb",
+      "b22821d904c65d9d73dd",
+      "e4a4ceff855584e7993d",
+      "de399b296244e4d4488f",
+      "580eccba4bf5024516e4",
+      "482a97a0e0347c4414db"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1610,
+    "completion_tokens": 724
+  }
+}

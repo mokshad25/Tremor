@@ -1,0 +1,5 @@
+input: 20000 lines, 5655 distinct raw PII values
+otlphttp/tremor: delivered 20000/20000 events in 1s; raw PII values found in the WAL: 0 -> PASS
+  {"events_accepted_total":20000,"requests_total":20,"requests_429_total":0,"requests_503_total":0,"redactions_email_total":1436,"redactions_card_total":1484,"redactions_ip_total":1834,"redactions_api_key_total":21,"redactions_username_total":2979}
+otlp/tremor: delivered 20000/20000 events in 1s; raw PII values found in the WAL: 0 -> PASS
+  {"events_accepted_total":20000,"requests_total":20,"requests_429_total":0,"requests_503_total":0,"redactions_email_total":1436,"redactions_card_total":1484,"redactions_ip_total":1834,"redactions_api_key_total":21,"redactions_username_total":2979}

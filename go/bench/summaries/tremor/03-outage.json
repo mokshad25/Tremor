@@ -1,0 +1,115 @@
+{
+  "group": "tremor",
+  "scenario": "outage",
+  "incident_id": "inc-52814700d4ab",
+  "severity": "CRITICAL",
+  "services": [
+    "ledger"
+  ],
+  "alerts": 4,
+  "expected_services": [
+    "ledger"
+  ],
+  "expected_trigger": "ledger outage: 95% errors, a new 'connection refused to ledger-db' template, volume down to 30%",
+  "llm_input": {
+    "incident_id": "inc-52814700d4ab",
+    "kind": "anomaly",
+    "opened_at": "2026-01-05T14:08:02Z",
+    "severity": "CRITICAL",
+    "services": [
+      "ledger"
+    ],
+    "alerts": [
+      {
+        "id": "14cdcda609ccf1e3d6d3",
+        "type": "ERROR_RATE",
+        "status": "OPEN",
+        "severity": "WARNING",
+        "service": "ledger",
+        "at": "2026-01-05T14:08:02Z",
+        "reason": "error rate 6.3% vs baseline 0.8% over the last 30 s",
+        "observed": 0.06289308176100629,
+        "baseline": 0.008251349129756006,
+        "z_score": 5.464173263125028,
+        "lines_in_window": 159,
+        "errors_in_window": 10,
+        "window_seconds": 30
+      },
+      {
+        "id": "9a00d535ee3765f0a6eb",
+        "type": "ERROR_RATE",
+        "status": "ESCALATED",
+        "severity": "HIGH",
+        "service": "ledger",
+        "at": "2026-01-05T14:08:05Z",
+        "reason": "error rate 9.7% vs baseline 0.8% over the last 30 s",
+        "observed": 0.0967741935483871,
+        "baseline": 0.008251349129756006,
+        "z_score": 8.852284441863109,
+        "lines_in_window": 155,
+        "errors_in_window": 15,
+        "window_seconds": 30
+      },
+      {
+        "id": "73652f3b331456bd33ad",
+        "type": "ERROR_RATE",
+        "status": "ESCALATED",
+        "severity": "CRITICAL",
+        "service": "ledger",
+        "at": "2026-01-05T14:08:19Z",
+        "reason": "error rate 51.5% vs baseline 0.8% over the last 30 s",
+        "observed": 0.5151515151515151,
+        "baseline": 0.008251349129756006,
+        "z_score": 50.69001660217591,
+        "lines_in_window": 132,
+        "errors_in_window": 68,
+        "window_seconds": 30
+      },
+      {
+        "id": "c3e64ee26d57b47c85e9",
+        "type": "ERROR_RATE",
+        "status": "RESOLVED",
+        "severity": "CRITICAL",
+        "service": "ledger",
+        "at": "2026-01-05T14:10:09Z",
+        "reason": "resolved: error rate 2.1% vs baseline 0.8% over the last 30 s",
+        "observed": 0.020618556701030927,
+        "baseline": 0.008251349129756006,
+        "z_score": 1.236720757127492,
+        "lines_in_window": 194,
+        "errors_in_window": 4,
+        "window_seconds": 30
+      }
+    ],
+    "top_error_templates": [
+      {
+        "service": "ledger",
+        "template": "Connection refused to ledger-db at \u003cIP\u003e after \u003cNUM\u003e",
+        "error_lines_in_window": 6
+      },
+      {
+        "service": "ledger",
+        "template": "DB timeout posting \u003cID\u003e after \u003cNUM\u003e",
+        "error_lines_in_window": 2
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-05 at around 14:08 UTC the ledger service experienced a rapid surge in error rate, jumping from a normal 0.8% baseline to over 50% within 30 seconds, triggering multiple alerts that escalated to CRITICAL. The spike was short‑lived, dropping back to ~2% by 14:10. The dominant error messages were connection refusals and timeouts to the ledger‑db.",
+    "likely_trigger": "A sudden loss of connectivity to the ledger‑db (e.g., the database refusing connections) is the most likely trigger, as indicated by the top error templates.",
+    "affected_services": [
+      "ledger"
+    ],
+    "suggested_next_check": "Check the health and network accessibility of the ledger‑db instance (e.g., service status, firewall rules, recent restarts).",
+    "cited_alert_ids": [
+      "14cdcda609ccf1e3d6d3",
+      "9a00d535ee3765f0a6eb",
+      "73652f3b331456bd33ad",
+      "c3e64ee26d57b47c85e9"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1281,
+    "completion_tokens": 431
+  }
+}

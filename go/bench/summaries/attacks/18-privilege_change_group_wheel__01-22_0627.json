@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/group_wheel @ 01-22 06:27",
+  "incident_id": "inc-3cbe328162c3",
+  "severity": "HIGH",
+  "services": [
+    "admin-portal"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "admin-portal"
+  ],
+  "expected_trigger": "an admin outside the role team adds a user to the wheel group",
+  "llm_input": {
+    "incident_id": "inc-3cbe328162c3",
+    "kind": "security",
+    "opened_at": "2026-01-22T06:27:20Z",
+    "severity": "HIGH",
+    "services": [
+      "admin-portal"
+    ],
+    "alerts": [
+      {
+        "id": "2e6a57a8818f47780c84",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "admin-portal",
+        "at": "2026-01-22T06:27:20Z",
+        "reason": "account or role change not seen for this user during the 24h0m0s baseline: \"Group membership changed: user=\u003cUSER\u003e added to group wheel by admin \u003cUSER\u003e\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1098"
+        ],
+        "user": "usr_fd78e798bc6f"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-22T06:27:20Z a privilege change was detected on the admin-portal service: user usr_fd78e798bc6f was added to the privileged 'wheel' group by admin usr_e7962e59ccc7. This action was outside the learned 24‑hour baseline and triggered a HIGH severity alert. It is a single anomalous event compared with normal activity.",
+    "likely_trigger": "An admin‑initiated group membership change adding usr_fd78e798bc6f to the wheel group.",
+    "affected_services": [
+      "admin-portal"
+    ],
+    "suggested_next_check": "Confirm whether the wheel‑group addition by usr_e7962e59ccc7 was authorized by reviewing recent admin actions and audit logs.",
+    "cited_alert_ids": [
+      "2e6a57a8818f47780c84"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 690,
+    "completion_tokens": 357
+  }
+}

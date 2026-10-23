@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/sudo @ 01-22 10:11",
+  "incident_id": "inc-573bf26a1a0d",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "an employee who never used sudo runs sudo to a root shell",
+  "llm_input": {
+    "incident_id": "inc-573bf26a1a0d",
+    "kind": "security",
+    "opened_at": "2026-01-22T10:11:03Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "ab2bc31c40d378ab86e6",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-22T10:11:03Z",
+        "reason": "privilege elevation not seen for this user during the 24h0m0s baseline: \"sudo: \u003cUSER\u003e : TTY=pts/\u003cNUM\u003e ; PWD=/home/\u003cUSER\u003e ; USER=root ; COMMAND=/bin/bash\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1548.003"
+        ],
+        "user": "usr_077f26fca1ec"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-22T10:11:03Z a user (usr_077f26fca1ec) performed a sudo command that elevated privileges to root on the sshd service, an action not seen in the 24‑hour baseline. This single privileged action triggered a HIGH‑severity alert, making the incident unusually rare compared with normal activity.",
+    "likely_trigger": "The unexpected sudo privilege escalation (MITRE T1548.003) is the most likely trigger for the alert.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Inspect the sudo session logs for usr_077f26fca1ec, including the executed /bin/bash command and any subsequent activity, to determine if the account was compromised.",
+    "cited_alert_ids": [
+      "ab2bc31c40d378ab86e6"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 709,
+    "completion_tokens": 328
+  }
+}

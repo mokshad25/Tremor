@@ -1,0 +1,20 @@
+{
+  "seed": 20261014,
+  "cycles": 50,
+  "killed_before_ready": 11,
+  "garbage_injections": 17,
+  "recoveries_that_truncated_a_tail": 16,
+  "acked_requests": 71709,
+  "acked_events": 3585450,
+  "processed_unique_seqs": 3594800,
+  "processed_total": 3645500,
+  "seqs_processed_more_than_once": 50700,
+  "processed_but_never_acked": 9350,
+  "lost_acked_events": 0,
+  "overlapping_acked_ranges": 0,
+  "max_recovery_ms": 10.338875,
+  "max_replayed_records": 25700,
+  "final_shutdown_clean": true,
+  "elapsed_s": 52.716034291,
+  "pass": true
+}

@@ -1,0 +1,76 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/app @ 01-21 03:29",
+  "incident_id": "inc-6ea939c18520",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 2,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "app login brute force from one IP against one employee",
+  "llm_input": {
+    "incident_id": "inc-6ea939c18520",
+    "kind": "security",
+    "opened_at": "2026-01-21T03:30:07Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "5666459f97383cde0627",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-21T03:30:07Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_35a9834b2fc9",
+        "source": "ip_09013fd00102"
+      },
+      {
+        "id": "7b10abf64ec3d803a1ea",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-21T03:32:01Z",
+        "reason": "30 failed logins from one source across 1 accounts in 300 s",
+        "observed": 30,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 30,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110"
+        ],
+        "source": "ip_09013fd00102"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 03:30:07 and 03:32:01 on 2026-01-21, auth-service generated two high‑severity brute‑force alerts. The first reported 10 failed logins for user usr_35a9834b2fc9 from source ip_09013fd00102 within 5 minutes, hitting its trigger threshold. The second, from the same source, saw 30 failed logins across multiple accounts in the same window, also meeting its threshold. Both events are abnormal compared with typical login traffic.",
+    "likely_trigger": "A coordinated brute‑force login attempt from source ip_09013fd00102 targeting one user and multiple accounts (ATT\u0026CK T1110.001 / T1110).",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Examine auth-service logs for ip_09013fd00102 around the alert times to verify if any accounts were compromised and to confirm lockout or rate‑limit enforcement.",
+    "cited_alert_ids": [
+      "5666459f97383cde0627",
+      "7b10abf64ec3d803a1ea"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 852,
+    "completion_tokens": 455
+  }
+}

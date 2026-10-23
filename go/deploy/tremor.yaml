@@ -1,0 +1,20 @@
+# TREMOR config for the docker compose stack. Secrets come from the
+# environment (TREMOR_HMAC_KEY, TREMOR_LLM_API_KEY, TREMOR_SLACK_WEBHOOK_URL,
+# TREMOR_WEBHOOK_SECRET), never from this file.
+server:
+  listen_addr: ":8080"
+  debug_addr: ""            # pprof stays off inside the container
+  metrics_addr: ":2112"     # scraped by Prometheus
+wal:
+  dir: /data/wal
+otlp:
+  http_addr: ":4318"
+  grpc_addr: ":4317"
+shards:
+  count: 4
+notify:
+  min_severity: WARNING
+  webhook_url: ""           # or TREMOR_WEBHOOK_URL
+llm:
+  enabled: true             # uses TREMOR_LLM_API_KEY if set; template summaries otherwise
+  model: openai/gpt-oss-120b

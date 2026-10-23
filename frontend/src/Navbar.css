@@ -1,0 +1,106 @@
+.global-nav {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--border-color, rgba(0,0,0,0.12));
+  background: rgba(252, 246, 240, 0.9); /* TellWell ink2 */
+  backdrop-filter: blur(14px);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+}
+
+.brand-link {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-main, rgba(0,0,0,0.87));
+  text-decoration: none;
+}
+
+.brand-icon {
+  color: var(--color-primary, #B05130);
+}
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+}
+
+.nav-links a {
+  color: var(--text-muted, rgba(0,0,0,0.54));
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--text-main, rgba(0,0,0,0.87));
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+}
+
+.nav-button {
+  text-decoration: none;
+  color: var(--surface-white, #FFFFFF);
+  background: var(--color-primary, #B05130);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(176, 81, 48, 0.2);
+}
+
+.nav-button:hover {
+  background: var(--color-critical, #9E371C);
+  transform: translateY(-1px);
+}
+
+.system-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted, rgba(0,0,0,0.54));
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 8px 16px;
+  border-radius: 100px;
+  background: var(--surface-white, #FFFFFF);
+  border: 1px solid var(--border-color, rgba(0,0,0,0.12));
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary, #B05130);
+}
+
+@media (max-width: 800px) {
+  .nav-links {
+    display: none;
+  }
+  .global-nav {
+    padding: 0 20px;
+  }
+}

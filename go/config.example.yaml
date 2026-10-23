@@ -1,0 +1,123 @@
+# TREMOR at Scale configuration. Every key is optional; unset keys keep the
+# defaults shown here. Unknown keys are rejected so typos fail loudly.
+# Secrets (from Phase 4: HMAC key, LLM API key) come from environment
+# variables only, never from this file.
+server:
+  listen_addr: ":8080"            # producers POST /ingest here (TREMOR_LISTEN_ADDR)
+  debug_addr: "127.0.0.1:6060"    # expvar /debug/vars + pprof, loopback only (TREMOR_DEBUG_ADDR; "" disables)
+  metrics_addr: ":2112"           # Prometheus /metrics on its own port, so pprof is never exposed (TREMOR_METRICS_ADDR)
+  read_header_timeout: 5s         # slow-loris guard
+  read_timeout: 30s
+  write_timeout: 30s
+  idle_timeout: 120s
+  shutdown_timeout: 30s           # max time to drain in-flight batches on SIGTERM
+
+ingest:
+  max_body_bytes: 1048576         # 1 MiB per request -> 413 above this
+  max_events_per_batch: 5000      # -> 413 above this
+  queue_capacity: 256             # batches admitted at once (TREMOR_QUEUE_CAPACITY)
+                                  # worst-case buffered bytes = queue_capacity x max_body_bytes = 256 MiB
+  retry_after: 1s                 # Retry-After on 429/503
+  ack_timeout: 10s                # 503 if a batch is not acked in time (producer retries)
+
+wal:
+  dir: ./data/wal                 # segment files + checkpoint.json (TREMOR_WAL_DIR)
+  segment_bytes: 67108864         # 64 MiB per segment
+  sync_every_records: 10000       # group commit: fsync after this many pending records... (TREMOR_WAL_SYNC_EVERY_RECORDS)
+  sync_interval: 10ms             # ...or this long after the first pending one (TREMOR_WAL_SYNC_INTERVAL)
+  fsync: true                     # false = ack from page cache; ONLY for measuring fsync cost (TREMOR_WAL_FSYNC)
+
+checkpoint:
+  interval: 1s                    # how often shard checkpoints are persisted (and old segments deleted)
+
+shards:
+  count: 0                        # 0 = number of CPUs (TREMOR_SHARDS)
+  queue_capacity: 16              # dispatch messages buffered per shard (each up to one WAL group)
+  tick_interval: 1s               # wall-clock ticks when no events arrive (silence detection)
+
+# OpenTelemetry receivers. "" disables one.
+otlp:
+  http_addr: ":4318"              # OTLP/HTTP: POST /v1/logs, protobuf or JSON, gzip ok (TREMOR_OTLP_HTTP_ADDR)
+  grpc_addr: ":4317"              # OTLP/gRPC LogsService (TREMOR_OTLP_GRPC_ADDR)
+
+# PII redaction runs at the gateway, before the WAL. The HMAC key for
+# ip_/usr_ tokens comes ONLY from the TREMOR_HMAC_KEY environment variable
+# (>= 16 bytes); without it a random per-process key is used.
+redact:
+  enabled: true                   # false only to measure the cost (TREMOR_REDACT=false)
+
+# Anomaly detection. Defaults are TREMOR's Python settings; see docs/phase3-detection.md.
+detect:
+  window_s: 30                    # error rate over lines that ARRIVED in the last 30 s
+  warmup_ticks: 30                # ticks (with >= min_events lines) used to seed each baseline
+  alpha: 0.01                     # EWMA smoothing: ~100 s memory at 1 tick/s
+  sigma_min: 0.01                 # floor on the spread, so z never explodes on a flat baseline
+  max_update_z: 2.0               # baseline only learns from ticks below this z (never absorbs incidents)
+  min_events: 20                  # fewer lines in the window: no verdict either way
+  z_info: 3                       # INFO (logged, not paged)
+  z_warn: 5                       # WARNING (pages)
+  z_high: 8                       # HIGH
+  rate_ceiling: 0.5               # >50% errors is CRITICAL, even while still learning
+  clear_z: 2.0                    # ticks below this z count toward resolution...
+  clear_ticks: 10                 # ...and this many in a row resolve the incident
+  silence_s: 10                   # no lines for this long (after warm-up) is HIGH
+  cooldown_s: 60                  # re-opening within this reuses the incident id
+  max_catch_up_s: 3600            # bigger clock jumps skip ticks instead of replaying them
+  sample_error_seqs: 16           # recent error-line WAL seqs attached to each alert
+
+  # Security rules (MITRE ATT&CK). They see only tokenized users/IPs.
+  # Reasoning for every default: docs/phase5-security.md.
+  security:
+    enabled: true
+    brute_force_window_s: 300         # T1110.001: failures for ONE user from ONE source...
+    brute_force_threshold: 10         # ...this many in the window
+    source_fail_threshold: 30         # T1110: one source, any accounts (SSH dictionary runs)
+    stuffing_window_s: 600            # T1110.004: one source failing for many users...
+    stuffing_min_users: 20            # ...this many distinct usernames
+    stuffing_min_failure_ratio: 0.8   # NAT guard: and >= 80% of that source's logins fail
+    allowed_sources: []               # raw IPs exempt from single-source rules (tokenized at startup)
+    distributed_window_s: 3600        # T1110.004 low and slow: distinct failing users per hour...
+    distributed_z: 5                  # ...this far above the learned baseline...
+    distributed_min_users: 30
+    distributed_min_sources: 20       # ...spread over this many sources (NAT guard)
+    distributed_eval_s: 60
+    distributed_warmup_evals: 60
+    privilege_learn_s: 86400          # T1548/T1098: learn (actor, action) pairs for a day, then freeze
+    unusual_min_days: 7               # T1078: judge only users watched this long...
+    unusual_min_history: 10           # ...with this many logins (new source)...
+    unusual_hour_min_history: 20      # ...or this many (unusual hour)
+    unusual_max_sources_per_user: 64
+    cooldown_s: 900                   # one alert per rule and key per cooldown
+    max_keys: 100000                  # per-service map cap: memory stays bounded under attack
+
+testing:
+  processed_log_dir: ""           # test-only: record every processed seq (used by cmd/chaos)
+
+# Alert correlator: groups alerts into incidents.
+correlator:
+  window_s: 300                   # related alerts this close join one incident; idle this long closes it
+  max_alerts: 200                 # kept per incident (more are counted)
+  deploy_lookback_s: 1800         # deploy notices this long before an incident are attached for the summary
+
+# LLM incident summaries. The LLM only explains: it cannot open, suppress or
+# close anything. API key: TREMOR_LLM_API_KEY (environment only). Without it,
+# or when the LLM fails, a deterministic template summary is used.
+llm:
+  enabled: true                   # TREMOR_LLM_ENABLED
+  provider: groq                  # any OpenAI-compatible chat completions API
+  endpoint: https://api.groq.com/openai/v1
+  model: openai/gpt-oss-120b
+  max_output_tokens: 1200
+  temperature: 0
+  timeout_s: 20
+  rate_per_minute: 20             # token bucket; over it, the template is used
+  cache_size: 1000                # one model call per incident
+  summary_delay_s: 20             # page at once with the template; LLM summary follows after this
+
+# Where incident notifications go. Only incidents at min_severity or above
+# are sent. Secrets are environment-only: TREMOR_SLACK_WEBHOOK_URL,
+# TREMOR_WEBHOOK_SECRET (signs webhook bodies: X-Tremor-Signature).
+notify:
+  min_severity: WARNING
+  webhook_url: ""                 # generic JSON webhook (TREMOR_WEBHOOK_URL)
+  queue_length: 256               # per sink; when full, notifications are dropped and counted, never blocking detection

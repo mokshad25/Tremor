@@ -1,0 +1,28 @@
+File: tremor
+Type: cpu
+Time: 2026-10-14 09:14:09 IST
+Duration: 15.10s, Total samples = 28.89s (191.35%)
+Showing nodes accounting for 23.31s, 80.69% of 28.89s total
+Dropped 238 nodes (cum <= 0.14s)
+Showing top 20 nodes out of 84
+      flat  flat%   sum%        cum   cum%
+         0     0%     0%     23.31s 80.69%  internal/poll.ignoringEINTRIO (inline)
+    23.31s 80.69% 80.69%     23.31s 80.69%  syscall.rawsyscalln
+         0     0% 80.69%     23.31s 80.69%  syscall.syscall
+         0     0% 80.69%     23.31s 80.69%  syscall.syscalln
+         0     0% 80.69%     18.35s 63.52%  net.(*conn).Read
+         0     0% 80.69%     18.33s 63.45%  internal/poll.(*FD).Read
+         0     0% 80.69%     18.33s 63.45%  net.(*netFD).Read
+         0     0% 80.69%     18.33s 63.45%  syscall.Read (inline)
+         0     0% 80.69%     18.33s 63.45%  syscall.read
+         0     0% 80.69%     16.01s 55.42%  net/http.(*connReader).backgroundRead
+         0     0% 80.69%      9.55s 33.06%  net/http.(*conn).serve
+         0     0% 80.69%      5.07s 17.55%  bufio.(*Writer).Flush
+         0     0% 80.69%      5.07s 17.55%  net/http.(*response).finishRequest
+         0     0% 80.69%      4.98s 17.24%  internal/poll.(*FD).Write
+         0     0% 80.69%      4.98s 17.24%  net.(*conn).Write
+         0     0% 80.69%      4.98s 17.24%  net.(*netFD).Write
+         0     0% 80.69%      4.98s 17.24%  net/http.checkConnErrorWriter.Write
+         0     0% 80.69%      4.98s 17.24%  syscall.Write (inline)
+         0     0% 80.69%      4.98s 17.24%  syscall.write
+         0     0% 80.69%      3.21s 11.11%  runtime.systemstack

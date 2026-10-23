@@ -1,0 +1,4 @@
+cpu: Apple M2
+BenchmarkSecurityObserveNonAuth-8         	 2254005	      1045 ns/op	      96 B/op	       1 allocs/op
+BenchmarkSecurityObserveAuthFailure-8     	 5987684	       404.2 ns/op	     160 B/op	       2 allocs/op
+BenchmarkSecurityObserveNonAuthCached-8   	813051736	         2.971 ns/op	       0 B/op	       0 allocs/op

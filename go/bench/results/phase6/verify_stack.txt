@@ -1,0 +1,55 @@
+== Prometheus targets
+  tremor: up
+== Dashboard panels (each query evaluated in Prometheus)
+  OK    Events accepted /s                                                                     series=1 sum=2000.2182056224317
+  OK    429 rejections /s                                                                      series=1 sum=0
+  OK    WAL fsync p99                                                                          series=1 sum=0.004969914040114613
+  OK    Checkpoint lag (records)                                                               series=1 sum=0
+  OK    Open incidents                                                                         series=1 sum=2
+  OK    PII redactions /s                                                                      series=1 sum=907.8847457627119
+  OK    Events per second                        accepted (fsynced, acked)                     series=1 sum=2000.2182056224317
+  OK    Events per second                        processed by shards                           series=1 sum=2000.2182056224317
+  OK    Rejected requests per second             {{result}}                                    series=3 sum=0
+  OK    Ingest admission slots                   in flight (decoding, queued, awaiting fsync)  series=1 sum=0
+  OK    Ingest admission slots                   queued for the WAL                            series=1 sum=0
+  OK    Ingest admission slots                   capacity                                      series=1 sum=256
+  OK    Shard queue depth                        shard {{shard}}                               series=4 sum=0
+  OK    Events per second per shard              shard {{shard}}                               series=4 sum=2000.2182056224317
+  OK    WAL fsync latency                        p50                                           series=1 sum=0.0018096054888507719
+  OK    WAL fsync latency                        p99                                           series=1 sum=0.004999999999999999
+  OK    WAL write latency                        p50                                           series=1 sum=0.00008140495867768595
+  OK    WAL write latency                        p99                                           series=1 sum=0.0004888544891640867
+  OK    Checkpoint lag and WAL throughput        records not yet checkpointed (replay size aft series=1 sum=0
+  OK    Checkpoint lag and WAL throughput        records appended /s                           series=1 sum=2000.2182056224317
+  OK    PII redactions per second, by type       {{type}}                                      series=10 sum=907.8847457627119
+  OK    Alerts by type                           {{type}}                                      series=4 sum=4.067796610169491
+  OK    Alerts by severity                       {{severity}}                                  series=4 sum=4.067796610169491
+  OK    Incidents                                {{event}}                                     series=3 sum=4.048237288135593
+  OK    Incidents                                open now                                      series=1 sum=2
+  EMPTY Notifications delivered                  {{sink}} {{result}}                           series=0 sum=none
+  OK    LLM request latency                      p50                                           series=1 sum=1.5
+  OK    LLM request latency                      p99                                           series=1 sum=1.99
+  OK    LLM tokens per minute                    {{kind}}                                      series=2 sum=207.864406779661
+  OK    LLM outcomes                             {{result}}                                    series=5 sum=6.022205004697471
+  OK    LLM outcomes                             template fallback                             series=1 sum=0
+  OK    Memory                                   RSS                                           series=1 sum=75276288
+  OK    Memory                                   Go heap in use                                series=1 sum=44605440
+  OK    Goroutines                               goroutines                                    series=1 sum=23
+  OK    CPU                                      cores used                                    series=1 sum=0.13965159835618446
+== Grafana
+{"database":"ok","version":"12.2.0","commit":"92f1fba9b4b6700328e99e97328d6639df8ddc3d"}
+  dashboard: TREMOR at Scale, 25 panels, folder TREMOR
+== Incidents and summaries (from TREMOR's log)
+  16:54:20 incident.opened HIGH sshd [template] HIGH security incident on sshd since 2026-10-17T16:54:20Z: 1 BRUTE_FORCE.
+  16:54:43 incident.summary HIGH sshd [llm] On 2026-10-17T16:54:20Z the sshd service triggered a high‑severity brute‑force alert. The root account received 10 failed login attempts fro
+  16:54:52 incident.escalated CRITICAL sshd [template] CRITICAL security incident on sshd since 2026-10-17T16:54:20Z: 2 BRUTE_FORCE.
+  16:56:21 incident.opened HIGH auth-service [template] HIGH security incident on auth-service since 2026-10-17T16:56:21Z: 1 CREDENTIAL_STUFFING.
+  16:56:36 incident.opened WARNING payment-gateway [template] WARNING anomaly incident on payment-gateway since 2026-10-17T16:56:35Z: 2 ERROR_RATE.
+  16:56:38 incident.escalated HIGH payment-gateway [template] HIGH anomaly incident on payment-gateway since 2026-10-17T16:56:35Z: 3 ERROR_RATE.
+  16:56:44 incident.summary HIGH auth-service [llm] On 2026-10-17, auth-service generated two high‑severity alerts within seconds of each other. An IP address (ip_18f3264cb08d) produced 20 dis
+  16:56:57 incident.summary HIGH payment-gateway [llm] On 2026-10-17 the payment-gateway service experienced a rapid rise in error rate, climbing from a baseline of 2.1% to 12.0% within a 30‑seco
+  16:56:58 incident.escalated CRITICAL payment-gateway [template] CRITICAL anomaly incident on payment-gateway since 2026-10-17T16:56:35Z: 4 ERROR_RATE.
+  16:59:53 incident.closed CRITICAL sshd [llm] On 2026-10-17T16:54:20Z the sshd service triggered a high‑severity brute‑force alert. The root account received 10 failed login attempts fro
+  17:00:02 incident.opened HIGH auth-service [template] HIGH security incident on auth-service since 2026-10-17T17:00:02Z: 1 UNUSUAL_ACCESS.
+  17:00:24 incident.summary HIGH auth-service [llm] A high‑severity security incident was raised at 17:00 UTC on 2026‑10‑17 for auth‑service. The UNUSUAL_ACCESS alert reported 30 login attempt
+  17:01:32 incident.closed HIGH auth-service [llm] On 2026-10-17, auth-service generated two high‑severity alerts within seconds of each other. An IP address (ip_18f3264cb08d) produced 20 dis

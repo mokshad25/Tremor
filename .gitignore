@@ -1,0 +1,85 @@
+# ── Python ────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# ── Testing / Coverage ───────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# ── Environment ──────────────────────────────────────────────────────
+.env
+*.env.local
+
+# ── Database ─────────────────────────────────────────────────────────
+*.db
+*.sqlite3
+
+# ── IDE ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Node (frontend) ──────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+
+# ── Terraform ────────────────────────────────────────────────────────
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/.terraform.lock.hcl
+
+# ── Logs & Samples ───────────────────────────────────────────────────
+sample/*.log
+*.log
+
+# ── Docker ───────────────────────────────────────────────────────────
+docker-compose.override.yml
+
+# ── Misc ─────────────────────────────────────────────────────────────
+TREMOR_ANTIGRAVITY_PROMPT.md
+infra/terraform/terraform.exe
+infra/terraform/LICENSE.txt
+# ── Secrets & credentials (never commit; use env vars / a secret manager) ──
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+*.tfvars
+!*.tfvars.example
+**/.terraform/
+*.tfstate*
+credentials.json
+service-account*.json
+
+# ── Go build / test artifacts ────────────────────────────────────────
+*.test
+*.prof
+coverage.out
+
+# ── Backups & dumps ──────────────────────────────────────────────────
+*.bak
+*.dump

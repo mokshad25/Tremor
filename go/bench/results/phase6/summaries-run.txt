@@ -1,0 +1,57 @@
+summaries: openai/gpt-oss-120b via https://api.groq.com/openai/v1
+steady: 0 paging incident(s)
+drift: 1 paging incident(s)
+  inc-17065bbc8bfd HIGH [payment-gateway]: llm
+burst: 1 paging incident(s)
+  inc-5ff04b46c7d9 CRITICAL [payment-gateway]: llm
+outage: 1 paging incident(s)
+  inc-52814700d4ab CRITICAL [ledger]: llm
+silence: 1 paging incident(s)
+  inc-9bdf36216360 HIGH [ledger payment-gateway]: llm
+new_pattern: 0 paging incident(s)
+latency_spike: 0 paging incident(s)
+noisy_normal: 0 paging incident(s)
+rotation: 0 paging incident(s)
+malformed_flood: 0 paging incident(s)
+attack simulator: 40 paging incident(s)
+  inc-662fc7a65e33 HIGH [auth-service]: llm
+  inc-dab5da400e72 HIGH [sshd]: llm
+  inc-c3ed3065e9ed CRITICAL [sshd]: llm
+  inc-0372b9f22384 CRITICAL [auth-service]: llm
+  inc-f280def18a52 HIGH [auth-service]: llm
+  inc-6ea939c18520 HIGH [auth-service]: llm
+  inc-c0570bc27aa7 HIGH [sshd]: llm
+  inc-3589fc985496 HIGH [admin-portal]: llm
+  inc-8288ffb93675 HIGH [admin-portal]: llm
+  inc-18803578dce4 HIGH [sshd]: llm
+  inc-c436d40f6bf1 HIGH [auth-service]: llm
+  inc-4d6ca699f006 CRITICAL [sshd]: llm
+  inc-afc60078a813 HIGH [auth-service]: llm
+  inc-3cbe328162c3 HIGH [admin-portal]: llm
+  inc-8ee5eca4ba9e HIGH [auth-service]: llm
+  inc-573bf26a1a0d HIGH [sshd]: llm
+  inc-7b6b1756fa59 HIGH [auth-service]: llm
+  inc-a7f7f276341d HIGH [auth-service]: llm
+  inc-c0e76e70c4b2 CRITICAL [auth-service]: llm
+  inc-37d27d633134 HIGH [auth-service]: llm
+  inc-cd54a8034ca2 HIGH [auth-service]: llm
+  inc-d86c462a07ed HIGH [sshd]: llm
+  inc-b77110d2bfa7 HIGH [auth-service]: llm
+  inc-e66aa0ee6e5a HIGH [auth-service]: llm
+  inc-9bb470d0f80c HIGH [admin-portal]: llm
+  inc-a205cbff86ca HIGH [auth-service]: llm
+  inc-000f92ea63c8 HIGH [auth-service]: llm
+  inc-bcab857c7c12 HIGH [auth-service]: llm
+  inc-8772b9db231a HIGH [auth-service]: llm
+  inc-1f93b0b5d795 HIGH [admin-portal]: llm
+  inc-d24b959f5906 HIGH [sshd]: llm
+  inc-b8114dd9cb95 HIGH [auth-service]: llm
+  inc-68e75796c5d8 HIGH [auth-service]: llm
+  inc-c89ed51ff7f9 HIGH [auth-service]: llm
+  inc-334d4ba95286 HIGH [auth-service]: llm
+  inc-b471003d799c HIGH [auth-service]: llm
+  inc-98e620b8dc2e HIGH [admin-portal]: llm
+  inc-a21cf1bff8dd HIGH [sshd]: llm
+  inc-448aa6d35c3f HIGH [auth-service]: llm
+  inc-9fd08dc8e880 HIGH [auth-service]: llm
+llm: 44 ok, 11 errors, 0 invalid, 11 fallbacks, 36828 prompt + 18688 completion tokens

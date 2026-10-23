@@ -1,0 +1,96 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/sshd @ 01-20 03:40",
+  "incident_id": "inc-c3ed3065e9ed",
+  "severity": "CRITICAL",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 3,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "SSH password brute force from one IP against one account (some end in a successful login)",
+  "llm_input": {
+    "incident_id": "inc-c3ed3065e9ed",
+    "kind": "security",
+    "opened_at": "2026-01-20T03:40:59Z",
+    "severity": "CRITICAL",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "4220d3a10d99eb7d7d72",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-20T03:40:59Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "root",
+        "source": "ip_a10ffc688958"
+      },
+      {
+        "id": "b668d60f5e2c73408427",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-20T03:42:44Z",
+        "reason": "30 failed logins from one source across 1 accounts in 300 s",
+        "observed": 30,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 30,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110"
+        ],
+        "source": "ip_a10ffc688958"
+      },
+      {
+        "id": "00f67ea393b9f8ad5758",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "CRITICAL",
+        "service": "sshd",
+        "at": "2026-01-20T03:42:56Z",
+        "reason": "successful login after 31 failures for the same user and source",
+        "observed": 31,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001",
+          "T1078"
+        ],
+        "user": "root",
+        "source": "ip_a10ffc688958"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-20 between 03:40 and 03:42 UTC, the sshd service generated three high‑severity brute‑force alerts from the same source IP (ip_a10ffc688958). Ten failed attempts against root triggered the first alert, 30 failures across accounts triggered the second, and a successful login after 31 failures triggered a critical alert. This volume exceeds the configured thresholds and indicates a coordinated attack.",
+    "likely_trigger": "A brute‑force credential‑guessing attempt from ip_a10ffc688958 targeting the root account (ATT\u0026CK T1110.001).",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Inspect the sshd logs for the successful login session from ip_a10ffc688958 and verify whether any unauthorized actions were performed.",
+    "cited_alert_ids": [
+      "4220d3a10d99eb7d7d72",
+      "b668d60f5e2c73408427",
+      "00f67ea393b9f8ad5758"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1024,
+    "completion_tokens": 374
+  }
+}

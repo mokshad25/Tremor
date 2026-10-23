@@ -1,0 +1,99 @@
+{
+  "group": "tremor",
+  "scenario": "drift",
+  "incident_id": "inc-17065bbc8bfd",
+  "severity": "HIGH",
+  "services": [
+    "payment-gateway"
+  ],
+  "alerts": 3,
+  "expected_services": [
+    "payment-gateway"
+  ],
+  "expected_trigger": "payment-gateway error rate drifts from 2% to 15% (gradual degradation)",
+  "llm_input": {
+    "incident_id": "inc-17065bbc8bfd",
+    "kind": "anomaly",
+    "opened_at": "2026-01-05T14:07:49Z",
+    "severity": "HIGH",
+    "services": [
+      "payment-gateway"
+    ],
+    "alerts": [
+      {
+        "id": "c35f6dd11ecf2d7fe9f8",
+        "type": "ERROR_RATE",
+        "status": "OPEN",
+        "severity": "INFO",
+        "service": "payment-gateway",
+        "at": "2026-01-05T14:07:49Z",
+        "reason": "error rate 6.4% vs baseline 3.3% over the last 30 s",
+        "observed": 0.06358381502890173,
+        "baseline": 0.03340875499046332,
+        "z_score": 3.017506003843841,
+        "lines_in_window": 346,
+        "errors_in_window": 22,
+        "window_seconds": 30
+      },
+      {
+        "id": "17167fd8cf29669a1175",
+        "type": "ERROR_RATE",
+        "status": "ESCALATED",
+        "severity": "WARNING",
+        "service": "payment-gateway",
+        "at": "2026-01-05T14:08:11Z",
+        "reason": "error rate 8.7% vs baseline 3.3% over the last 30 s",
+        "observed": 0.08695652173913043,
+        "baseline": 0.03340875499046332,
+        "z_score": 5.354776674866711,
+        "lines_in_window": 345,
+        "errors_in_window": 30,
+        "window_seconds": 30
+      },
+      {
+        "id": "d3fb3530d6fb6f1f6b76",
+        "type": "ERROR_RATE",
+        "status": "ESCALATED",
+        "severity": "HIGH",
+        "service": "payment-gateway",
+        "at": "2026-01-05T14:09:33Z",
+        "reason": "error rate 11.5% vs baseline 3.3% over the last 30 s",
+        "observed": 0.11526479750778816,
+        "baseline": 0.03340875499046332,
+        "z_score": 8.161156121199392,
+        "lines_in_window": 321,
+        "errors_in_window": 37,
+        "window_seconds": 30
+      }
+    ],
+    "top_error_templates": [
+      {
+        "service": "payment-gateway",
+        "template": "Acquirer timeout \u003cID\u003e after \u003cNUM\u003e upstream=\u003cIP\u003e",
+        "error_lines_in_window": 13
+      },
+      {
+        "service": "payment-gateway",
+        "template": "Payment failed \u003cID\u003e \u003c*\u003e for \u003cEMAIL\u003e",
+        "error_lines_in_window": 16
+      }
+    ]
+  },
+  "summary": {
+    "summary": "The payment-gateway service experienced a rapid increase in error rate over a few minutes on 2026-01-05, rising from 6.4% to 11.5% compared to its normal baseline of 3.3%. Three deterministic alerts were raised and escalated as the error volume grew (22, 30, then 37 errors in 30‑second windows). The most common error messages were acquirer timeouts and payment failures for specific users.",
+    "likely_trigger": "The evidence points to upstream acquirer timeouts causing downstream payment failures, which drove the error‑rate spike.",
+    "affected_services": [
+      "payment-gateway"
+    ],
+    "suggested_next_check": "Check the health and latency of the upstream acquirer service and any recent network issues between payment-gateway and the acquirer.",
+    "cited_alert_ids": [
+      "c35f6dd11ecf2d7fe9f8",
+      "17167fd8cf29669a1175",
+      "d3fb3530d6fb6f1f6b76"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1135,
+    "completion_tokens": 400
+  }
+}

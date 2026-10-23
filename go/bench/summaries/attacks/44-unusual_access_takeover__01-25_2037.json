@@ -1,0 +1,56 @@
+{
+  "group": "attacks",
+  "scenario": "unusual_access/takeover @ 01-25 20:37",
+  "incident_id": "inc-9fd08dc8e880",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "account takeover shape: new address and unusual hour together",
+  "llm_input": {
+    "incident_id": "inc-9fd08dc8e880",
+    "kind": "security",
+    "opened_at": "2026-01-25T20:37:00Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "1e2f9b3e187d58102419",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-25T20:37:00Z",
+        "reason": "login from a source this user never used, at 20:00 UTC when they never log in",
+        "observed": 107,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_955d295b0f56",
+        "source": "ip_e49821de2e94"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 20:00 UTC on 2026-01-25, auth-service recorded a login for user usr_955d295b0f56 from a previously unseen source IP ip_e49821de2e94. This login is the only event in the user’s recent history of 107 successful logins, making it highly anomalous compared with normal behavior.",
+    "likely_trigger": "The alert was triggered by an unusual access pattern: a login from a new source IP at an atypical time for this user.",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Verify the credential status for usr_955d295b0f56 and investigate the reputation of ip_e49821de2e94.",
+    "cited_alert_ids": [
+      "1e2f9b3e187d58102419"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 690,
+    "completion_tokens": 576
+  }
+}

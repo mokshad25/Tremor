@@ -1,0 +1,84 @@
+# TREMOR at Scale: the pipeline, Prometheus and a provisioned Grafana
+# dashboard, plus a demo traffic generator so the dashboard has data at once.
+#
+#   cd go/deploy && docker compose up --build
+#   Grafana:    http://localhost:3000  (dashboard "TREMOR at Scale"; anonymous view;
+#               GRAFANA_PORT=3001 docker compose up if 3000 is taken)
+#   Prometheus: http://localhost:9090
+#   TREMOR:     POST http://localhost:8080/ingest, OTLP on :4318 / :4317
+#
+# Secrets are read from your shell environment, never stored here:
+#   TREMOR_HMAC_KEY (IP/username tokens; a demo default is used if unset),
+#   TREMOR_LLM_API_KEY (Groq; template summaries without it),
+#   TREMOR_SLACK_WEBHOOK_URL, TREMOR_WEBHOOK_URL, TREMOR_WEBHOOK_SECRET.
+# Without the demo traffic: docker compose up tremor prometheus grafana
+name: tremor
+
+services:
+  tremor:
+    build:
+      context: ..
+    image: tremor:local
+    environment:
+      TREMOR_HMAC_KEY: ${TREMOR_HMAC_KEY:-demo-only-hmac-key-change-me-0123456789}
+      TREMOR_LLM_API_KEY: ${TREMOR_LLM_API_KEY:-}
+      TREMOR_SLACK_WEBHOOK_URL: ${TREMOR_SLACK_WEBHOOK_URL:-}
+      TREMOR_WEBHOOK_URL: ${TREMOR_WEBHOOK_URL:-}
+      TREMOR_WEBHOOK_SECRET: ${TREMOR_WEBHOOK_SECRET:-}
+    ports:
+      - "8080:8080"
+      - "4317:4317"
+      - "4318:4318"
+      - "2112:2112"
+    volumes:
+      - tremor-data:/data
+    stop_grace_period: 40s   # graceful drain: fsync, final checkpoint, closing incidents
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/readyz"]
+      interval: 5s
+      timeout: 2s
+      retries: 20
+
+  prometheus:
+    image: prom/prometheus:v3.6.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml", "--storage.tsdb.retention.time=7d"]
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      tremor:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:12.2.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/tremor.json
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    depends_on:
+      - prometheus
+
+  # Demo traffic: 2,000 ev/s across 6 services with periodic error spikes,
+  # plus every security attack type injected once. Remove for real use.
+  loadgen:
+    image: tremor:local
+    entrypoint: ["loadgen"]
+    command: ["-url", "http://tremor:8080/ingest", "-rate", "2000", "-services", "6", "-duration", "24h",
+              "-spike-every", "4m", "-spike-len", "40s", "-spike-error-rate", "0.6",
+              "-attack", "all", "-attack-at", "90s", "-attack-gap", "2m", "-progress", "1m"]
+    depends_on:
+      tremor:
+        condition: service_healthy
+
+volumes:
+  tremor-data:
+  prometheus-data:

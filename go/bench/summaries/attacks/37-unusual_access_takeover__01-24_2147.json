@@ -1,0 +1,56 @@
+{
+  "group": "attacks",
+  "scenario": "unusual_access/takeover @ 01-24 21:47",
+  "incident_id": "inc-68e75796c5d8",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "account takeover shape: new address and unusual hour together",
+  "llm_input": {
+    "incident_id": "inc-68e75796c5d8",
+    "kind": "security",
+    "opened_at": "2026-01-24T21:47:00Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "2a57fc99aa917b0fe002",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-24T21:47:00Z",
+        "reason": "login from a source this user never used, at 21:00 UTC when they never log in",
+        "observed": 79,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_9b5e5f2adfe5",
+        "source": "ip_4ad40a45bcfc"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "A high‑severity UNUSUAL_ACCESS alert was raised for auth-service at 2026-01-24T21:47:00Z. The alert flags a login by user usr_9b5e5f2adfe5 from a new source IP ip_4ad40a45bcfc at 21:00 UTC, a time the user never logs in, against a history of 79 prior successful logins. This single anomalous login stands out compared with the user's normal pattern.",
+    "likely_trigger": "The most likely trigger is a credential‑related anomaly: a login from an unfamiliar IP address at an unusual hour, matching ATT\u0026CK technique T1078 (Valid Accounts).",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Review the full login history for usr_9b5e5f2adfe5, verify the reputation of ip_4ad40a45bcfc, and confirm whether multi‑factor authentication was satisfied for this session.",
+    "cited_alert_ids": [
+      "2a57fc99aa917b0fe002"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 693,
+    "completion_tokens": 383
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "url": "http://127.0.0.1:8080/ingest",
+  "target_eps": 2000,
+  "duration_s": 360,
+  "elapsed_s": 359.967769708,
+  "batch": 100,
+  "concurrency": 64,
+  "services": [
+    "payment-gateway",
+    "auth-service",
+    "ledger",
+    "svc-04",
+    "svc-05",
+    "svc-06"
+  ],
+  "retry": false,
+  "requests": 7200,
+  "ok": 7200,
+  "rejected_429": 0,
+  "rejected_503": 0,
+  "other_status": 0,
+  "other_status_codes": {},
+  "transport_errors": 0,
+  "client_dropped": 0,
+  "retries": 0,
+  "gave_up": 0,
+  "events_sent": 720000,
+  "events_accepted": 720000,
+  "offered_eps": 2000.1790732099496,
+  "accepted_eps": 2000.1790732099496,
+  "ok_latency_ms": {
+    "n": 7200,
+    "p50": 18.140458,
+    "p90": 20.2705,
+    "p99": 29.054542,
+    "max": 261.252667
+  },
+  "reject_latency_ms": {
+    "n": 0,
+    "p50": 0,
+    "p90": 0,
+    "p99": 0,
+    "max": 0
+  },
+  "pregen": 0,
+  "attacks": [
+    {
+      "type": "brute_force",
+      "variant": "sshd",
+      "service": "sshd",
+      "start": "2026-10-15T01:27:16.907128+05:30",
+      "end": "2026-10-15T01:28:06.907128+05:30",
+      "user": "root",
+      "source": "185.231.15.113"
+    },
+    {
+      "type": "credential_stuffing",
+      "variant": "single_source",
+      "service": "auth-service",
+      "start": "2026-10-15T01:28:46.907128+05:30",
+      "end": "2026-10-15T01:29:46.907128+05:30",
+      "source": "185.124.185.120"
+    },
+    {
+      "type": "privilege_change",
+      "variant": "sudo",
+      "service": "bastion",
+      "start": "2026-10-15T01:30:16.907128+05:30",
+      "end": "2026-10-15T01:30:16.907128+05:30",
+      "user": "intern.dev"
+    },
+    {
+      "type": "unusual_access",
+      "variant": "takeover",
+      "service": "auth-service",
+      "start": "2026-10-15T01:31:46.907128+05:30",
+      "end": "2026-10-15T01:31:46.907128+05:30",
+      "user": "meera.nair",
+      "source": "185.32.86.8"
+    }
+  ],
+  "all_rejections_explicit": true
+}

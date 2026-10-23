@@ -1,0 +1,95 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/app @ 01-20 08:15",
+  "incident_id": "inc-0372b9f22384",
+  "severity": "CRITICAL",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 3,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "app login brute force from one IP against one employee",
+  "llm_input": {
+    "incident_id": "inc-0372b9f22384",
+    "kind": "security",
+    "opened_at": "2026-01-20T08:16:41Z",
+    "severity": "CRITICAL",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "77787ad6457181c43e67",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-20T08:16:41Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_7d2c09a382e9",
+        "source": "ip_149a8dd763b2"
+      },
+      {
+        "id": "0629d67bc322ed720328",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "CRITICAL",
+        "service": "auth-service",
+        "at": "2026-01-20T08:17:34Z",
+        "reason": "successful login after 18 failures for the same user and source",
+        "observed": 18,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001",
+          "T1078"
+        ],
+        "user": "usr_7d2c09a382e9",
+        "source": "ip_149a8dd763b2"
+      },
+      {
+        "id": "2bf566358f684bb3d683",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "INFO",
+        "service": "auth-service",
+        "at": "2026-01-20T08:17:34Z",
+        "reason": "login from a source this user never used (72 previous logins from 3 sources)",
+        "observed": 72,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_7d2c09a382e9",
+        "source": "ip_149a8dd763b2"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-20 between 08:16 and 08:17 UTC the auth-service recorded a burst of failed logins (10 in 5 minutes) for user usr_7d2c09a382e9 from source ip_149a8dd763b2, followed by a successful login after 18 failures and a login from a source the user had never used before. This pattern is far above normal login activity and triggered high‑severity brute‑force and unusual‑access alerts. The incident is marked CRITICAL due to the successful credential use after many failures.",
+    "likely_trigger": "A brute‑force credential‑guessing attempt from ip_149a8dd763b2 targeting usr_7d2c09a382e9, consistent with ATT\u0026CK T1110.001 and T1078.",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Examine the detailed authentication logs for usr_7d2c09a382e9 and ip_149a8dd763b2 to confirm compromise and consider locking the account or enforcing additional MFA.",
+    "cited_alert_ids": [
+      "77787ad6457181c43e67",
+      "0629d67bc322ed720328",
+      "2bf566358f684bb3d683"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1060,
+    "completion_tokens": 466
+  }
+}

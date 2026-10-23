@@ -1,0 +1,56 @@
+{
+  "group": "attacks",
+  "scenario": "unusual_access/takeover @ 01-23 20:39",
+  "incident_id": "inc-000f92ea63c8",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "account takeover shape: new address and unusual hour together",
+  "llm_input": {
+    "incident_id": "inc-000f92ea63c8",
+    "kind": "security",
+    "opened_at": "2026-01-23T20:39:00Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "2fa5dee54bb245f5a34e",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-23T20:39:00Z",
+        "reason": "login from a source this user never used, at 20:00 UTC when they never log in",
+        "observed": 63,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_ed3aa21f5f1b",
+        "source": "ip_0299e8f06ba9"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "A HIGH severity security incident was opened at 2026-01-23T20:39:00Z for auth-service. An UNUSUAL_ACCESS alert flagged a single login by user usr_ed3aa21f5f1b from a previously unseen source IP ip_0299e8f06ba9 at 20:00 UTC, a time the user never logs in. The alert compared this login against a history of 63 prior successful logins for the same user.",
+    "likely_trigger": "A login from a new source IP at an atypical hour, matching ATT\u0026CK technique T1078 (Valid Accounts).",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Check the credential integrity for usr_ed3aa21f5f1b and review recent authentication events and IP reputation for ip_0299e8f06ba9.",
+    "cited_alert_ids": [
+      "2fa5dee54bb245f5a34e"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 692,
+    "completion_tokens": 344
+  }
+}

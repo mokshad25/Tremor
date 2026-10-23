@@ -1,0 +1,58 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/app @ 01-25 04:08",
+  "incident_id": "inc-334d4ba95286",
+  "severity": "HIGH",
+  "services": [
+    "auth-service"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "auth-service"
+  ],
+  "expected_trigger": "app login brute force from one IP against one employee",
+  "llm_input": {
+    "incident_id": "inc-334d4ba95286",
+    "kind": "security",
+    "opened_at": "2026-01-25T04:08:45Z",
+    "severity": "HIGH",
+    "services": [
+      "auth-service"
+    ],
+    "alerts": [
+      {
+        "id": "5cd78c66e0ba45da49dc",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "auth-service",
+        "at": "2026-01-25T04:08:45Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_6e4371e998ed",
+        "source": "ip_113c47911075"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-25T04:08:45Z the auth-service raised a high‑severity BRUTE_FORCE alert. Ten failed login attempts for user usr_6e4371e998ed came from source ip_113c47911075 within a 300‑second window, reaching the rule's trigger count. This pattern is an abnormal spike compared with normal login activity.",
+    "likely_trigger": "A rapid series of failed logins from a single IP targeting one user (brute‑force, MITRE ATT\u0026CK T1110.001).",
+    "affected_services": [
+      "auth-service"
+    ],
+    "suggested_next_check": "Check the reputation and activity of ip_113c47911075 and review lockout or rate‑limiting settings for the affected account.",
+    "cited_alert_ids": [
+      "5cd78c66e0ba45da49dc"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 686,
+    "completion_tokens": 514
+  }
+}

@@ -1,0 +1,79 @@
+# OpenTelemetry Collector -> TREMOR, by configuration only.
+#
+# The collector tails JSON log lines, maps them to OTLP log records
+# (service -> resource service.name, level -> severity, message -> body) and
+# exports them to TREMOR over OTLP/HTTP (4318) or OTLP/gRPC (4317). TREMOR
+# needs no collector-specific code: these are the standard OTLP endpoints.
+#
+# Pick the exporter with TREMOR_EXPORTER=otlphttp/tremor | otlp/tremor.
+
+receivers:
+  filelog:
+    include: [/data/*.jsonl]
+    start_at: beginning
+    operators:
+      - type: json_parser
+        timestamp:
+          parse_from: attributes.timestamp
+          layout_type: gotime
+          layout: "2006-01-02T15:04:05.000Z07:00"
+        severity:
+          parse_from: attributes.level
+          mapping:
+            debug: [DEBUG]
+            info: [INFO]
+            warn: [WARNING, WARN]
+            error: [ERROR]
+      - type: move
+        from: attributes.service
+        to: resource["service.name"]
+      - type: move
+        from: attributes.message
+        to: body
+      - type: move
+        from: attributes.attributes.host
+        to: attributes["host.name"]
+      - type: remove
+        field: attributes.attributes
+      - type: remove
+        field: attributes.timestamp
+      - type: remove
+        field: attributes.level
+
+processors:
+  batch:
+    timeout: 1s
+    send_batch_size: 1000
+    # TREMOR rejects requests with more than ingest.max_events_per_batch
+    # (5000) records or a body over 1 MiB; keep batches well under both.
+    send_batch_max_size: 2000
+
+exporters:
+  otlphttp/tremor:
+    endpoint: http://host.docker.internal:4318   # POSTs to /v1/logs
+    compression: gzip
+    retry_on_failure:   # honours TREMOR's 429/503 + Retry-After
+      enabled: true
+      max_elapsed_time: 5m
+    sending_queue:
+      enabled: true
+  otlp/tremor:
+    endpoint: host.docker.internal:4317
+    compression: gzip
+    tls:
+      insecure: true
+    retry_on_failure:   # RESOURCE_EXHAUSTED/UNAVAILABLE + RetryInfo are retried
+      enabled: true
+      max_elapsed_time: 5m
+    sending_queue:
+      enabled: true
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch]
+      exporters: ["${env:TREMOR_EXPORTER}"]
+  telemetry:
+    logs:
+      level: info

@@ -1,0 +1,51 @@
+{
+  "url": "http://127.0.0.1:8080/ingest",
+  "target_eps": 1200000,
+  "duration_s": 120,
+  "elapsed_s": 120.03493125,
+  "batch": 100,
+  "concurrency": 1024,
+  "services": [
+    "payment-gateway",
+    "auth-service",
+    "ledger",
+    "svc-04",
+    "svc-05",
+    "svc-06",
+    "svc-07",
+    "svc-08",
+    "svc-09",
+    "svc-10"
+  ],
+  "retry": false,
+  "requests": 1440006,
+  "ok": 990370,
+  "rejected_429": 449636,
+  "rejected_503": 0,
+  "other_status": 0,
+  "other_status_codes": {},
+  "transport_errors": 0,
+  "client_dropped": 0,
+  "retries": 0,
+  "gave_up": 0,
+  "events_sent": 144000600,
+  "events_accepted": 99037000,
+  "offered_eps": 1199655.7876980498,
+  "accepted_eps": 825068.1611482991,
+  "ok_latency_ms": {
+    "n": 990370,
+    "p50": 31.765971,
+    "p90": 53.538401,
+    "p99": 79.686555,
+    "max": 254.612683
+  },
+  "reject_latency_ms": {
+    "n": 449636,
+    "p50": 10.15004,
+    "p90": 29.055863,
+    "p99": 70.063491,
+    "max": 235.473676
+  },
+  "pregen": 1024,
+  "all_rejections_explicit": true
+}

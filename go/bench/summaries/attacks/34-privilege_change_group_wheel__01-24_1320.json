@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/group_wheel @ 01-24 13:20",
+  "incident_id": "inc-1f93b0b5d795",
+  "severity": "HIGH",
+  "services": [
+    "admin-portal"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "admin-portal"
+  ],
+  "expected_trigger": "an admin outside the role team adds a user to the wheel group",
+  "llm_input": {
+    "incident_id": "inc-1f93b0b5d795",
+    "kind": "security",
+    "opened_at": "2026-01-24T13:20:33Z",
+    "severity": "HIGH",
+    "services": [
+      "admin-portal"
+    ],
+    "alerts": [
+      {
+        "id": "90d3870a724b3fce06ce",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "admin-portal",
+        "at": "2026-01-24T13:20:33Z",
+        "reason": "account or role change not seen for this user during the 24h0m0s baseline: \"Group membership changed: user=\u003cUSER\u003e added to group wheel by admin \u003cUSER\u003e\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1098"
+        ],
+        "user": "usr_1db0517d78f3"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-24T13:20:33Z a privilege change was detected in the admin-portal service: user usr_9ca77ee6abf2 was added to the wheel group by admin usr_e7962e59ccc7. This action was not seen for this user in the past 24 hours, representing a single out‑of‑baseline event. The alert is marked HIGH, indicating a notable deviation from normal privilege‑change patterns.",
+    "likely_trigger": "An admin‑initiated group membership change (adding usr_9ca77ee6abf2 to the wheel group) that fell outside the learned baseline.",
+    "affected_services": [
+      "admin-portal"
+    ],
+    "suggested_next_check": "Review the admin account usr_e7962e59ccc7 activity and audit logs to confirm whether the wheel‑group addition was authorized.",
+    "cited_alert_ids": [
+      "90d3870a724b3fce06ce"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 693,
+    "completion_tokens": 564
+  }
+}

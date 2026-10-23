@@ -1,0 +1,76 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/sshd @ 01-25 13:10",
+  "incident_id": "inc-a21cf1bff8dd",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 2,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "SSH password brute force from one IP against one account (some end in a successful login)",
+  "llm_input": {
+    "incident_id": "inc-a21cf1bff8dd",
+    "kind": "security",
+    "opened_at": "2026-01-25T13:10:46Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "9186a413820dbe48c9df",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-25T13:10:46Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_e4ad1d6cc285",
+        "source": "ip_5f38b428821c"
+      },
+      {
+        "id": "e0d2d6d6a145f833ec97",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-25T13:12:22Z",
+        "reason": "30 failed logins from one source across 1 accounts in 300 s",
+        "observed": 30,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 30,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110"
+        ],
+        "source": "ip_5f38b428821c"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-25 around 13:10‑13:12 UTC, the sshd service generated two high‑severity brute‑force alerts. One alert reported 10 failed login attempts for a single user from source ip_5f38b428821c within 5 minutes, and a second alert reported 30 failed attempts across multiple accounts from the same source in the same window, both exceeding their configured thresholds. Such a volume of failed SSH logins is far above normal traffic patterns and indicates a coordinated attack attempt.",
+    "likely_trigger": "A rapid brute‑force login attempt from source ip_5f38b428821c targeting SSH.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Inspect the SSH logs for that source IP and consider blocking or rate‑limiting ip_5f38b428821c, and verify whether any successful logins occurred.",
+    "cited_alert_ids": [
+      "9186a413820dbe48c9df",
+      "e0d2d6d6a145f833ec97"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 858,
+    "completion_tokens": 432
+  }
+}

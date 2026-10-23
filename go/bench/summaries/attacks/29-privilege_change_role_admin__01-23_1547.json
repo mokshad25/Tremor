@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/role_admin @ 01-23 15:47",
+  "incident_id": "inc-9bb470d0f80c",
+  "severity": "HIGH",
+  "services": [
+    "admin-portal"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "admin-portal"
+  ],
+  "expected_trigger": "a role admin who only granted viewer/editor grants the admin role",
+  "llm_input": {
+    "incident_id": "inc-9bb470d0f80c",
+    "kind": "security",
+    "opened_at": "2026-01-23T15:47:25Z",
+    "severity": "HIGH",
+    "services": [
+      "admin-portal"
+    ],
+    "alerts": [
+      {
+        "id": "938d1cad919be7362bfc",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "admin-portal",
+        "at": "2026-01-23T15:47:25Z",
+        "reason": "account or role change not seen for this user during the 24h0m0s baseline: \"Role \u003c*\u003e granted to user=\u003cUSER\u003e by admin \u003cUSER\u003e\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1098"
+        ],
+        "user": "usr_0f7164f83cb2"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "At 2026-01-23T15:47:25Z a HIGH‑severity PRIVILEGE_CHANGE alert was raised for the admin-portal service. The system observed a role grant to user usr_0f7164f83cb2 by admin usr_e7962e59ccc7 that had never occurred in the past 24 hours, deviating from the learned baseline. This is a single anomalous action, but it is flagged as high impact because it involves privilege escalation.",
+    "likely_trigger": "A privileged role was granted to usr_0f7164f83cb2 by admin usr_e7962e59ccc7, an action not seen in the baseline (MITRE ATT\u0026CK T1098).",
+    "affected_services": [
+      "admin-portal"
+    ],
+    "suggested_next_check": "Confirm whether the role grant to usr_0f7164f83cb2 was authorized by reviewing admin usr_e7962e59ccc7’s recent activity and related audit logs.",
+    "cited_alert_ids": [
+      "938d1cad919be7362bfc"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 693,
+    "completion_tokens": 393
+  }
+}

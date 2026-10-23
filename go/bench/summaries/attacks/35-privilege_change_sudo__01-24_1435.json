@@ -1,0 +1,55 @@
+{
+  "group": "attacks",
+  "scenario": "privilege_change/sudo @ 01-24 14:35",
+  "incident_id": "inc-d24b959f5906",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "an employee who never used sudo runs sudo to a root shell",
+  "llm_input": {
+    "incident_id": "inc-d24b959f5906",
+    "kind": "security",
+    "opened_at": "2026-01-24T14:35:34Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "1f396b39b59f17c61722",
+        "type": "PRIVILEGE_CHANGE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-24T14:35:34Z",
+        "reason": "privilege elevation not seen for this user during the 24h0m0s baseline: \"sudo: \u003cUSER\u003e : TTY=pts/\u003cNUM\u003e ; PWD=/home/\u003cUSER\u003e ; USER=root ; COMMAND=/bin/bash\"",
+        "observed": 1,
+        "observed_is": "one action outside the learned baseline",
+        "mitre_attack": [
+          "T1548.003"
+        ],
+        "user": "usr_d2dbb3ef56ff"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "A high‑severity privilege‑change alert was raised for the sshd service at 2026‑01‑24T14:35:34Z. The alert shows user usr_d2dbb3ef56ff executed a sudo command to become root, which was not observed in the 24‑hour baseline. This is a single anomalous event compared with normal behavior.",
+    "likely_trigger": "A sudo invocation by usr_d2dbb3ef56ff that deviated from the learned baseline, indicating a possible credential misuse or unauthorized privilege escalation.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Verify the legitimacy of the sudo session (e.g., check source IP, recent logins, and command history) and look for signs of credential compromise.",
+    "cited_alert_ids": [
+      "1f396b39b59f17c61722"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 707,
+    "completion_tokens": 349
+  }
+}

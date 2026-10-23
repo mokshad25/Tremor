@@ -1,0 +1,7 @@
+setting	sat_accepted_eps	sat_429	lat_p50_ms	lat_p99_ms	lat_syncs	lat_avg_fsync_ms	lat_max_fsync_ms	sat_events_per_sync
+no-fsync (page cache only; NOT durable)	975381	44751	6.96	13.16	1762	0	0.14	8915
+fsync, 1ms interval	785752	82764	4.83	16.12	7716	2.11	33.16	3295
+fsync, 5ms interval	721870	89665	7.43	13.62	2950	2.48	24.29	5390
+fsync, 10ms interval (default)	659291	96514	9.78	19.45	1690	2.78	51.86	7703
+fsync, 50ms interval	775924	83175	30.32	56.09	387	3.09	8.09	9985
+fsync, 50ms or 1000 records	617216	115918	13.04	23.09	1000	2.75	12.15	999

@@ -1,0 +1,95 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/sshd @ 01-22 02:56",
+  "incident_id": "inc-4d6ca699f006",
+  "severity": "CRITICAL",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 3,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "SSH password brute force from one IP against one account (some end in a successful login)",
+  "llm_input": {
+    "incident_id": "inc-4d6ca699f006",
+    "kind": "security",
+    "opened_at": "2026-01-22T02:56:56Z",
+    "severity": "CRITICAL",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "b98b8695c0f51d52471c",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-22T02:56:56Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "usr_187c0ab17d22",
+        "source": "ip_32eb15d1146f"
+      },
+      {
+        "id": "ad59b40f51200236c4ca",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "CRITICAL",
+        "service": "sshd",
+        "at": "2026-01-22T02:57:33Z",
+        "reason": "successful login after 16 failures for the same user and source",
+        "observed": 16,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001",
+          "T1078"
+        ],
+        "user": "usr_187c0ab17d22",
+        "source": "ip_32eb15d1146f"
+      },
+      {
+        "id": "fa751ff860c29828517e",
+        "type": "UNUSUAL_ACCESS",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-22T02:57:33Z",
+        "reason": "login from a source this user never used, at 02:00 UTC when they never log in",
+        "observed": 56,
+        "observed_is": "this user's previous successful logins, i.e. the size of the history the login was compared with; this is ONE login",
+        "mitre_attack": [
+          "T1078"
+        ],
+        "user": "usr_187c0ab17d22",
+        "source": "ip_32eb15d1146f"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-22 a series of SSH login events triggered three alerts on the sshd service. Ten failed login attempts from ip_32eb15d1146f to user usr_187c0ab17d22 occurred within five minutes, followed by a successful login after a total of 16 failures, and the login was flagged as unusual because the source IP has never been used by this user and the time (02:00 UTC) is outside their normal login window. This pattern is far above typical activity for this account and source.",
+    "likely_trigger": "A brute‑force credential‑guessing attempt that succeeded, as indicated by the rapid failed attempts and subsequent successful login from a previously unseen IP (MITRE T1110.001, T1078).",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Check the session activity for the successful login and verify whether the credentials for usr_187c0ab17d22 have been compromised, including reviewing the reputation of ip_32eb15d1146f.",
+    "cited_alert_ids": [
+      "b98b8695c0f51d52471c",
+      "ad59b40f51200236c4ca",
+      "fa751ff860c29828517e"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 1061,
+    "completion_tokens": 466
+  }
+}

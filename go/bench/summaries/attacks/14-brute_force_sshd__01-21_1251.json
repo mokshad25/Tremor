@@ -1,0 +1,58 @@
+{
+  "group": "attacks",
+  "scenario": "brute_force/sshd @ 01-21 12:51",
+  "incident_id": "inc-18803578dce4",
+  "severity": "HIGH",
+  "services": [
+    "sshd"
+  ],
+  "alerts": 1,
+  "expected_services": [
+    "sshd"
+  ],
+  "expected_trigger": "SSH password brute force from one IP against one account (some end in a successful login)",
+  "llm_input": {
+    "incident_id": "inc-18803578dce4",
+    "kind": "security",
+    "opened_at": "2026-01-21T12:52:35Z",
+    "severity": "HIGH",
+    "services": [
+      "sshd"
+    ],
+    "alerts": [
+      {
+        "id": "1a4cb5ac38927d3540ac",
+        "type": "BRUTE_FORCE",
+        "status": "OPEN",
+        "severity": "HIGH",
+        "service": "sshd",
+        "at": "2026-01-21T12:52:35Z",
+        "reason": "10 failed logins for one user from one source in 300 s",
+        "observed": 10,
+        "observed_is": "failed logins in the window (threshold: the rule's trigger count)",
+        "threshold": 10,
+        "window_seconds": 300,
+        "mitre_attack": [
+          "T1110.001"
+        ],
+        "user": "root",
+        "source": "ip_e3ad7a1ff413"
+      }
+    ]
+  },
+  "summary": {
+    "summary": "On 2026-01-21 at 12:52:35Z, the sshd service generated a HIGH‑severity brute‑force alert after observing exactly 10 failed login attempts for the user root from source ip_e3ad7a1ff413 within a 5‑minute window, matching the rule’s trigger threshold. This volume of failures is unusual compared with normal login patterns for root. The incident is flagged as a potential credential‑guessing attack.",
+    "likely_trigger": "A rapid series of failed SSH login attempts (brute‑force) targeting the root account from a single IP address.",
+    "affected_services": [
+      "sshd"
+    ],
+    "suggested_next_check": "Review the sshd logs for ip_e3ad7a1ff413 around the alert time to confirm whether any successful login occurred and to assess if additional mitigation (e.g., IP block or fail2ban) is needed.",
+    "cited_alert_ids": [
+      "1a4cb5ac38927d3540ac"
+    ],
+    "source": "llm",
+    "model": "openai/gpt-oss-120b",
+    "prompt_tokens": 680,
+    "completion_tokens": 404
+  }
+}
