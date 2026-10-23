@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import "./App.css";
 import { useWebSocket } from "./useWebSocket";
 import { 
@@ -30,9 +30,31 @@ type Point = {
   baseline: number;
 };
 
+type Tick = {
+  ts: number;
+  error_rate?: number | null;
+  baseline?: number | null;
+  z?: number | null;
+  lines?: number | null;
+  severity?: Severity | null;
+};
+
+// Envelopes sent by app/sinks/ws.py.
+type WSMessage =
+  | { type: "snapshot"; ts: number; data: { alerts?: Alert[] } }
+  | { type: "alert"; ts: number; data: Alert }
+  | { type: "metric"; ts: number; data: Tick }
+  | { type: "heartbeat"; ts: number };
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value?: number }>;
+  label?: string | number;
+};
+
 const MAX_POINTS = 60;
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
       <div className="custom-tooltip">
@@ -56,15 +78,16 @@ function Dashboard() {
   const [linesProcessed, setLinesProcessed] = useState(0);
   const [severity, setSeverity] = useState<Severity>("LOW");
 
-  useEffect(() => {
-    if (!selectedAlert) return;
+  // Keep the open drawer in sync with live status changes. Adjusting state
+  // during render (not in an effect) avoids an extra cascading render.
+  if (selectedAlert) {
     const live = alerts.find((a) => a.id === selectedAlert.id);
     if (live && live.status !== selectedAlert.status) {
       setSelectedAlert(live);
     }
-  }, [alerts, selectedAlert]);
+  }
 
-  const handleWSMessage = useCallback((message: any) => {
+  const handleWSMessage = useCallback((message: WSMessage) => {
     if (message.type === "snapshot") {
       setAlerts(message.data.alerts || []);
     } else if (message.type === "alert") {
@@ -102,7 +125,7 @@ function Dashboard() {
     }
   }, []);
 
-  useWebSocket<any>("ws://localhost:8000/ws/alerts", handleWSMessage, {
+  useWebSocket<WSMessage>("ws://localhost:8000/ws/alerts", handleWSMessage, {
     onOpen: () => console.info("[TREMOR] WS connected"),
     onError: (e) => console.warn("[TREMOR] WS error", e),
   });

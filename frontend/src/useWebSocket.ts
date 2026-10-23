@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useLayoutEffect, useRef, useCallback } from "react";
 
 type UseWebSocketOptions = {
   /** Initial retry delay in ms. Doubles on each failure up to maxDelay. */
@@ -48,46 +48,47 @@ export function useWebSocket<T>(
   const onMessageRef = useRef(onMessage);
   const onOpenRef = useRef(onOpen);
   const onErrorRef = useRef(onError);
-  onMessageRef.current = onMessage;
-  onOpenRef.current = onOpen;
-  onErrorRef.current = onError;
-
-  const connect = useCallback(() => {
-    if (destroyed.current) return;
-
-    const ws = new WebSocket(url);
-    socketRef.current = ws;
-
-    ws.onopen = (event) => {
-      retryDelay.current = initialDelay; // reset backoff on successful connect
-      onOpenRef.current?.(event);
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const parsed: T = JSON.parse(event.data as string);
-        onMessageRef.current(parsed);
-      } catch {
-        // Non-JSON frame — ignore or log.
-      }
-    };
-
-    ws.onerror = (event) => {
-      onErrorRef.current?.(event);
-    };
-
-    ws.onclose = () => {
-      if (destroyed.current) return;
-      retryTimer.current = setTimeout(() => {
-        connect();
-      }, retryDelay.current);
-      // Exponential backoff, capped.
-      retryDelay.current = Math.min(retryDelay.current * 2, maxDelay);
-    };
-  }, [url, initialDelay, maxDelay]);
+  useLayoutEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onErrorRef.current = onError;
+  });
 
   useEffect(() => {
     destroyed.current = false;
+
+    function connect() {
+      if (destroyed.current) return;
+
+      const ws = new WebSocket(url);
+      socketRef.current = ws;
+
+      ws.onopen = (event) => {
+        retryDelay.current = initialDelay; // reset backoff on successful connect
+        onOpenRef.current?.(event);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const parsed: T = JSON.parse(event.data as string);
+          onMessageRef.current(parsed);
+        } catch {
+          // Non-JSON frame — ignore or log.
+        }
+      };
+
+      ws.onerror = (event) => {
+        onErrorRef.current?.(event);
+      };
+
+      ws.onclose = () => {
+        if (destroyed.current) return;
+        retryTimer.current = setTimeout(connect, retryDelay.current);
+        // Exponential backoff, capped.
+        retryDelay.current = Math.min(retryDelay.current * 2, maxDelay);
+      };
+    }
+
     connect();
 
     return () => {
@@ -95,7 +96,7 @@ export function useWebSocket<T>(
       if (retryTimer.current !== null) clearTimeout(retryTimer.current);
       socketRef.current?.close();
     };
-  }, [connect]);
+  }, [url, initialDelay, maxDelay]);
 
   /** Send a raw string frame. No-ops if the socket isn't open. */
   const sendMessage = useCallback((message: string) => {
