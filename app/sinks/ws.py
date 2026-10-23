@@ -14,7 +14,7 @@ Owner: Varad (pipeline integration)
 from __future__ import annotations
 
 import asyncio
-import json
+import contextlib
 import time
 from collections import deque
 from typing import Any
@@ -50,15 +50,11 @@ class ConnectionManager:
         """Stop the heartbeat loop and close all connections."""
         if self._heartbeat_task:
             self._heartbeat_task.cancel()
-            try:
+            with contextlib.suppress(asyncio.CancelledError):
                 await self._heartbeat_task
-            except asyncio.CancelledError:
-                pass
         for ws in list(self._connections):
-            try:
+            with contextlib.suppress(Exception):
                 await ws.close()
-            except Exception:
-                pass
         self._connections.clear()
         await log.ainfo("ws.manager.stopped")
 
@@ -77,10 +73,8 @@ class ConnectionManager:
                 "tick": self._last_tick,
             },
         }
-        try:
+        with contextlib.suppress(Exception):
             await asyncio.wait_for(ws.send_json(snapshot), timeout=SEND_TIMEOUT)
-        except Exception:
-            pass
 
     def disconnect(self, ws: WebSocket) -> None:
         """Remove a disconnected client."""
@@ -104,15 +98,13 @@ class ConnectionManager:
         for ws in list(self._connections):
             try:
                 await asyncio.wait_for(ws.send_json(message), timeout=SEND_TIMEOUT)
-            except (WebSocketDisconnect, asyncio.TimeoutError, Exception):
+            except (TimeoutError, WebSocketDisconnect, Exception):
                 dead.append(ws)
 
         for ws in dead:
             self._connections.discard(ws)
-            try:
+            with contextlib.suppress(Exception):
                 await ws.close()
-            except Exception:
-                pass
 
     async def _heartbeat_loop(self) -> None:
         """Send periodic heartbeats to keep connections alive."""

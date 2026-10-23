@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import asyncio
 import json
-import pytest
+
 import boto3
+import pytest
 from moto import mock_aws
 
-from app.sinks.cloudwatch import CloudWatchSink
 from app.sinks.base import DeliveryStatus
+from app.sinks.cloudwatch import CloudWatchSink
 
 
 @pytest.fixture
@@ -37,7 +38,7 @@ def test_cloudwatch_send_creates_group_and_puts_event(mock_event: dict) -> None:
         region="us-east-1",
     )
 
-    status = asyncio.get_event_loop().run_until_complete(sink.send(mock_event))
+    status = asyncio.run(sink.send(mock_event))
     assert status == DeliveryStatus.DELIVERED
 
     # Verify via boto3 that the log group exists
@@ -68,7 +69,7 @@ def test_cloudwatch_puts_custom_metric(mock_event: dict) -> None:
         region="us-east-1",
     )
 
-    asyncio.get_event_loop().run_until_complete(sink.send(mock_event))
+    asyncio.run(sink.send(mock_event))
 
     # Verify metric was published
     cw = boto3.client("cloudwatch", region_name="us-east-1")
@@ -86,9 +87,8 @@ def test_cloudwatch_idempotent_group_creation(mock_event: dict) -> None:
         region="us-east-1",
     )
 
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(sink.send(mock_event))
-    loop.run_until_complete(sink.send(mock_event))
+    asyncio.run(sink.send(mock_event))
+    asyncio.run(sink.send(mock_event))
 
     client = boto3.client("logs", region_name="us-east-1")
     events = client.get_log_events(

@@ -7,9 +7,10 @@ Entry point: `uvicorn app.main:create_app --factory`
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import FastAPI
@@ -26,6 +27,9 @@ from app.ingest.tailer import Tailer
 from app.sinks.base import SinkWorker
 from app.sinks.ws import ws_manager
 
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
+
 
 def _configure_logging() -> None:
     """Configure structlog for JSON output."""
@@ -34,9 +38,11 @@ def _configure_logging() -> None:
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer()
-            if settings.log_level == "DEBUG"
-            else structlog.processors.JSONRenderer(),
+            (
+                structlog.dev.ConsoleRenderer()
+                if settings.log_level == "DEBUG"
+                else structlog.processors.JSONRenderer()
+            ),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             logging.getLevelName(settings.log_level)
@@ -53,22 +59,33 @@ def _build_sinks() -> list[SinkWorker]:
 
     if settings.dry_run:
         from app.sinks.dryrun import DryRunSink
+
         workers.append(SinkWorker(DryRunSink()))
     else:
         if settings.sns_topic_arn:
             from app.sinks.sns import SNSSink
-            workers.append(SinkWorker(SNSSink(
-                topic_arn=settings.sns_topic_arn,
-                endpoint_url=settings.aws_endpoint_url or None,
-            )))
+
+            workers.append(
+                SinkWorker(
+                    SNSSink(
+                        topic_arn=settings.sns_topic_arn,
+                        endpoint_url=settings.aws_endpoint_url or None,
+                    )
+                )
+            )
         if settings.cw_log_group:
             from app.sinks.cloudwatch import CloudWatchSink
-            workers.append(SinkWorker(CloudWatchSink(
-                log_group=settings.cw_log_group,
-                log_stream=settings.cw_log_stream,
-                namespace=settings.cw_namespace,
-                endpoint_url=settings.aws_endpoint_url or None,
-            )))
+
+            workers.append(
+                SinkWorker(
+                    CloudWatchSink(
+                        log_group=settings.cw_log_group,
+                        log_stream=settings.cw_log_stream,
+                        namespace=settings.cw_namespace,
+                        endpoint_url=settings.aws_endpoint_url or None,
+                    )
+                )
+            )
 
     return workers
 
@@ -143,7 +160,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 # Process lines from the queue (non-blocking with timeout)
                 try:
                     service, raw_line = await asyncio.wait_for(raw_queue.get(), timeout=0.1)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # No lines available — check if a tick is due
                     now = clock.now()
                     if now >= next_tick:
@@ -190,10 +207,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     # Stop pipeline
     pipeline_task.cancel()
-    try:
+    with contextlib.suppress(asyncio.CancelledError):
         await pipeline_task
-    except asyncio.CancelledError:
-        pass
 
     # Stop tailers
     for tailer in tailers:
@@ -219,7 +234,7 @@ async def _run_tick(
     alert_repo: AlertRepository,
 ) -> None:
     """Run a tick on all engines, broadcast results, and push alerts to sinks."""
-    for svc, engine in engines.items():
+    for engine in engines.values():
         result = engine.tick(now)
 
         # Broadcast tick data to WebSocket clients
@@ -233,10 +248,9 @@ async def _run_tick(
             await ws_manager.broadcast_alert(alert_dict)
 
             # Persist to database
-            try:
+            # Don't crash the pipeline on DB errors
+            with contextlib.suppress(Exception):
                 await alert_repo.save(alert)
-            except Exception:
-                pass  # Don't crash the pipeline on DB errors
 
             # Push to AWS sinks
             for w in sink_workers:

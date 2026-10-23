@@ -5,12 +5,12 @@ TREMOR — SNS sink tests (using moto mock).
 from __future__ import annotations
 
 import asyncio
-import pytest
+
 import boto3
 from moto import mock_aws
 
-from app.sinks.sns import SNSSink
 from app.sinks.base import DeliveryStatus
+from app.sinks.sns import SNSSink
 
 
 @mock_aws
@@ -30,7 +30,7 @@ def test_sns_publishes_critical_alert() -> None:
     }
 
     sink = SNSSink(topic_arn=topic_arn, region="us-east-1")
-    status = asyncio.get_event_loop().run_until_complete(sink.send(event))
+    status = asyncio.run(sink.send(event))
     assert status == DeliveryStatus.DELIVERED
 
 
@@ -51,7 +51,7 @@ def test_sns_publishes_high_alert() -> None:
     }
 
     sink = SNSSink(topic_arn=topic_arn, region="us-east-1")
-    status = asyncio.get_event_loop().run_until_complete(sink.send(event))
+    status = asyncio.run(sink.send(event))
     assert status == DeliveryStatus.DELIVERED
 
 
@@ -72,7 +72,7 @@ def test_sns_skips_info_alert() -> None:
     }
 
     sink = SNSSink(topic_arn=topic_arn, region="us-east-1")
-    status = asyncio.get_event_loop().run_until_complete(sink.send(event))
+    status = asyncio.run(sink.send(event))
     assert status == DeliveryStatus.DELIVERED
 
 
@@ -93,5 +93,5 @@ def test_sns_skips_warning_alert() -> None:
     }
 
     sink = SNSSink(topic_arn=topic_arn, region="us-east-1")
-    status = asyncio.get_event_loop().run_until_complete(sink.send(event))
+    status = asyncio.run(sink.send(event))
     assert status == DeliveryStatus.DELIVERED

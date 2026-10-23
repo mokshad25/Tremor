@@ -14,9 +14,10 @@ from __future__ import annotations
 
 import structlog
 
-from app.sinks.base import Sink, DeliveryStatus
+from app.sinks.base import DeliveryStatus
 
 log = structlog.get_logger()
+
 
 class DryRunSink:
     """A sink that simply logs the alert to stdout (useful for local dev/testing)."""
@@ -32,7 +33,7 @@ class DryRunSink:
             alert_id=event.get("id"),
             service=event.get("service"),
             severity=event.get("severity"),
-            signal=event.get("signal_type")
+            signal=event.get("signal_type"),
         )
         return DeliveryStatus.DRY_RUN
 

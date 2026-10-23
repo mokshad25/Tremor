@@ -13,9 +13,9 @@ Owner: Varad (Phase 4)
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import json
 import time
-from typing import Optional
 
 import boto3
 import structlog
@@ -71,18 +71,14 @@ class CloudWatchSink:
 
         assert self._logs_client is not None
 
-        try:
+        with contextlib.suppress(self._logs_client.exceptions.ResourceAlreadyExistsException):
             self._logs_client.create_log_group(logGroupName=self._log_group)
-        except self._logs_client.exceptions.ResourceAlreadyExistsException:
-            pass
 
-        try:
+        with contextlib.suppress(self._logs_client.exceptions.ResourceAlreadyExistsException):
             self._logs_client.create_log_stream(
                 logGroupName=self._log_group,
                 logStreamName=self._log_stream,
             )
-        except self._logs_client.exceptions.ResourceAlreadyExistsException:
-            pass
 
         self._initialized = True
 

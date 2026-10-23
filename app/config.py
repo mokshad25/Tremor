@@ -76,7 +76,12 @@ class Settings(BaseSettings):
     # ── Logging ──────────────────────────────────────────────────────
     log_level: str = "INFO"
 
-    model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "case_sensitive": False, "extra": "ignore"}
+    model_config = {
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "extra": "ignore",
+    }
 
     @property
     def window_sizes(self) -> list[int]:

@@ -6,13 +6,13 @@ Owner: Varad (pipeline integration)
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from app.db.models import AlertRecord, Base, DeliveryRecord
+from app.db.models import AlertRecord, Base
 
 if TYPE_CHECKING:
     from app.core.alerts import Alert
@@ -59,10 +59,21 @@ class AlertRepository:
                 errors=alert.errors,
                 template_id=alert.template_id,
                 explanation=alert.explanation,
-                timeline=[{"ts": t.ts, "status": t.status.value, "reason": t.reason} for t in alert.timeline],
+                timeline=[
+                    {"ts": t.ts, "status": t.status.value, "reason": t.reason}
+                    for t in alert.timeline
+                ],
                 samples=alert.samples,
-                created_at=datetime.fromtimestamp(alert.created_at, tz=timezone.utc) if alert.created_at else datetime.now(timezone.utc),
-                updated_at=datetime.fromtimestamp(alert.updated_at, tz=timezone.utc) if alert.updated_at else datetime.now(timezone.utc),
+                created_at=(
+                    datetime.fromtimestamp(alert.created_at, tz=UTC)
+                    if alert.created_at
+                    else datetime.now(UTC)
+                ),
+                updated_at=(
+                    datetime.fromtimestamp(alert.updated_at, tz=UTC)
+                    if alert.updated_at
+                    else datetime.now(UTC)
+                ),
             )
             await session.merge(record)
             await session.commit()
@@ -102,6 +113,7 @@ class AlertRepository:
         """Count alerts matching the filters."""
         async with self._db.session_factory() as session:
             from sqlalchemy import func as sqlfunc
+
             stmt = select(sqlfunc.count(AlertRecord.id))
             if service:
                 stmt = stmt.where(AlertRecord.service == service)

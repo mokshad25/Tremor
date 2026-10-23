@@ -29,6 +29,7 @@ router = APIRouter()
 
 # ── Health ────────────────────────────────────────────────────────────
 
+
 @router.get("/health", tags=["ops"])
 async def health(request: Request) -> dict:
     """Component health check."""
@@ -51,6 +52,7 @@ async def health(request: Request) -> dict:
 
 # ── WebSocket ─────────────────────────────────────────────────────────
 
+
 @router.websocket("/ws/alerts")
 async def ws_alerts(ws: WebSocket) -> None:
     """Live alert feed via WebSocket."""
@@ -58,7 +60,7 @@ async def ws_alerts(ws: WebSocket) -> None:
     try:
         while True:
             # Keep the connection alive by reading (client can send acks)
-            data = await ws.receive_text()
+            await ws.receive_text()
             # Future: handle client commands (ack, silence via WS)
     except WebSocketDisconnect:
         ws_manager.disconnect(ws)
@@ -67,6 +69,7 @@ async def ws_alerts(ws: WebSocket) -> None:
 
 
 # ── Alert endpoints ──────────────────────────────────────────────────
+
 
 @router.get("/api/alerts", tags=["alerts"])
 async def list_alerts(
@@ -145,6 +148,7 @@ async def silence_alert(
 
 # ── Metrics / State endpoints ────────────────────────────────────────
 
+
 @router.get("/api/metrics/current", tags=["metrics"])
 async def current_metrics(request: Request) -> dict:
     """Current window metrics per service (polling fallback)."""
@@ -204,10 +208,12 @@ async def templates(request: Request) -> dict:
 
 # ── Demo endpoint ────────────────────────────────────────────────────
 
+
 @router.post("/api/sim/inject", tags=["demo"])
 async def inject_scenario(request: Request) -> dict:
     """Inject a scenario (demo mode only)."""
     from app.config import settings
+
     if not settings.demo_mode:
         return {"error": "demo_mode_disabled"}
     # Future: integrate with simulator
@@ -215,6 +221,7 @@ async def inject_scenario(request: Request) -> dict:
 
 
 # ── Active alerts (live, from engine memory) ─────────────────────────
+
 
 @router.get("/api/alerts/active", tags=["alerts"])
 async def active_alerts(request: Request) -> dict:
@@ -228,6 +235,7 @@ async def active_alerts(request: Request) -> dict:
 
 
 # ── Helpers ──────────────────────────────────────────────────────────
+
 
 def _record_to_dict(record) -> dict:
     """Convert an AlertRecord ORM object to a JSON-serializable dict."""

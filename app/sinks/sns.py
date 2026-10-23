@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Optional
 
 import boto3
 import structlog
@@ -73,8 +72,9 @@ class SNSSink:
 
         # Extract relevant detection fields for the email details
         details = {
-            k: v for k, v in event.items() 
-            if k in {"value", "baseline", "z_score", "lines", "errors", "reason", "template_id"} 
+            k: v
+            for k, v in event.items()
+            if k in {"value", "baseline", "z_score", "lines", "errors", "reason", "template_id"}
             and v is not None
         }
 

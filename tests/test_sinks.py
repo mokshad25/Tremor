@@ -5,9 +5,10 @@ TREMOR — SinkWorker tests.
 from __future__ import annotations
 
 import asyncio
+
 import pytest
 
-from app.sinks.base import SinkWorker, Sink, DeliveryStatus
+from app.sinks.base import DeliveryStatus, SinkWorker
 
 
 class MockSink:
@@ -52,16 +53,16 @@ async def test_sink_worker_success() -> None:
 async def test_sink_worker_backoff() -> None:
     sink = MockSink("mock", should_fail=True)
     worker = SinkWorker(sink)
-    
-    # Speed up sleep in the test by patching asyncio.sleep? 
+
+    # Speed up sleep in the test by patching asyncio.sleep?
     # Or just wait a tiny bit to see it enqueue back.
     # We will just verify it requeues.
     await worker.run()
 
     await worker.enqueue({"id": "fail-test"})
     await asyncio.sleep(0.05)
-    
+
     # It failed, so it should have re-queued the event
     assert worker.queue.qsize() == 1
-    
+
     await worker.stop()
