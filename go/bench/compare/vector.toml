@@ -1,0 +1,20 @@
+# Vector: receive loadgen's JSON array over HTTP, one event per element, and
+# write JSON lines to a local file. End-to-end acknowledgements are on, so the
+# HTTP 200 is sent only after the file sink has written the batch (it does not
+# fsync). Run by bench/compare.sh with --threads to match TREMOR's GOMAXPROCS.
+# compare.sh substitutes COMPARE_DIR itself: Vector does not expand
+# environment variables inside template fields such as the file sink's path.
+data_dir = "COMPARE_DIR/vector-data"
+
+[sources.http]
+type = "http_server"
+address = "127.0.0.1:18081"
+path = "/ingest"
+decoding.codec = "json"
+
+[sinks.file]
+type = "file"
+inputs = ["http"]
+path = "COMPARE_DIR/vector-out.jsonl"
+encoding.codec = "json"
+acknowledgements.enabled = true

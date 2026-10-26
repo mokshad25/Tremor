@@ -1,0 +1,22 @@
+File: drain.test
+Type: cpu
+Time: 2026-10-26 15:10:53 IST
+Duration: 5.89s, Total samples = 4430ms (75.21%)
+Showing nodes accounting for 3760ms, 84.88% of 4430ms total
+Dropped 61 nodes (cum <= 22.15ms)
+Showing top 15 nodes out of 89
+      flat  flat%   sum%        cum   cum%
+     830ms 18.74% 18.74%      830ms 18.74%  runtime.kevent
+     620ms 14.00% 32.73%      620ms 14.00%  runtime.memequal
+     520ms 11.74% 44.47%     1600ms 36.12%  github.com/mokshad/tremor/internal/drain.matchWord
+     500ms 11.29% 55.76%      500ms 11.29%  github.com/mokshad/tremor/internal/drain.isWord (inline)
+     230ms  5.19% 60.95%      380ms  8.58%  strings.Fields
+     210ms  4.74% 65.69%      210ms  4.74%  runtime.madvise
+     190ms  4.29% 69.98%      480ms 10.84%  github.com/mokshad/tremor/internal/drain.wordEnd (inline)
+     140ms  3.16% 73.14%      430ms  9.71%  github.com/mokshad/tremor/internal/drain.maskNum
+     130ms  2.93% 76.07%      220ms  4.97%  github.com/mokshad/tremor/internal/drain.matchUUID
+     120ms  2.71% 78.78%      130ms  2.93%  github.com/mokshad/tremor/internal/drain.matchNumAt
+      70ms  1.58% 80.36%       70ms  1.58%  runtime.pthread_kill
+      50ms  1.13% 81.49%      110ms  2.48%  github.com/mokshad/tremor/internal/drain.(*Drain).seqDistance
+      50ms  1.13% 82.62%       60ms  1.35%  github.com/mokshad/tremor/internal/drain.isHex (inline)
+      50ms  1.13% 83.75%       90ms  2.03%  github.com/mokshad/tremor/internal/drain.matchIP

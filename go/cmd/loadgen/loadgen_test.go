@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"math/rand/v2"
@@ -221,5 +222,21 @@ func TestWriteFile(t *testing.T) {
 	var e wireEvent
 	if err := json.Unmarshal([]byte(lines[0]), &e); err != nil || e.Service == "" || e.Message == "" {
 		t.Fatalf("bad line %q: %v", lines[0], err)
+	}
+}
+
+func TestEncodeBatchBodyFormats(t *testing.T) {
+	events := NewGenerator(GenConfig{Services: 3, Seed: 1}, 0).Batch(0, t0, 5)
+	var buf bytes.Buffer
+	encodeBatch(&buf, "events", events)
+	var wrapped struct{ Events []wireEvent }
+	if err := json.Unmarshal(buf.Bytes(), &wrapped); err != nil || !reflect.DeepEqual(wrapped.Events, events) {
+		t.Fatalf("events body: err %v, got %d events", err, len(wrapped.Events))
+	}
+	buf.Reset()
+	encodeBatch(&buf, "array", events)
+	var bare []wireEvent
+	if err := json.Unmarshal(buf.Bytes(), &bare); err != nil || !reflect.DeepEqual(bare, events) {
+		t.Fatalf("array body: err %v, got %d events", err, len(bare))
 	}
 }

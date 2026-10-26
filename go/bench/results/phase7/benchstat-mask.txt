@@ -1,0 +1,11 @@
+       │    regex     │                scan                 │
+       │    sec/op    │   sec/op     vs base                │
+Mask-8   7843.0n ± 7%   655.5n ± 3%  -91.64% (p=0.000 n=10)
+
+       │   regex    │                scan                │
+       │    B/op    │    B/op     vs base                │
+Mask-8   879.0 ± 0%   100.0 ± 0%  -88.62% (p=0.000 n=10)
+
+       │    regex    │                scan                │
+       │  allocs/op  │ allocs/op   vs base                │
+Mask-8   21.000 ± 0%   1.000 ± 0%  -95.24% (p=0.000 n=10)

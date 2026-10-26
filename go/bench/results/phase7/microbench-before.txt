@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mokshad/tremor/internal/drain
+cpu: Apple M2
+BenchmarkMaskAndAdd-8   	  272019	     11691 ns/op	    1436 B/op	      39 allocs/op
+BenchmarkMaskAndAdd-8   	  324380	     12222 ns/op	    1435 B/op	      39 allocs/op
+BenchmarkMaskAndAdd-8   	  318270	     11263 ns/op	    1437 B/op	      39 allocs/op
+BenchmarkMaskAndAdd-8   	  333321	     12126 ns/op	    1437 B/op	      39 allocs/op
+BenchmarkMaskAndAdd-8   	  324060	     11252 ns/op	    1436 B/op	      39 allocs/op
+BenchmarkMask-8         	  440995	      8872 ns/op	     967 B/op	      32 allocs/op
+BenchmarkMask-8         	  467685	      8656 ns/op	     967 B/op	      32 allocs/op
+BenchmarkMask-8         	  460743	      7903 ns/op	     967 B/op	      32 allocs/op
+BenchmarkMask-8         	  469828	      8004 ns/op	     967 B/op	      32 allocs/op
+BenchmarkMask-8         	  464997	     10018 ns/op	     968 B/op	      32 allocs/op
+PASS
+ok  	github.com/mokshad/tremor/internal/drain	39.730s

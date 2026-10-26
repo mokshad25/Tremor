@@ -36,7 +36,8 @@ type options struct {
 	maxRetries  int
 	progress    time.Duration
 	out         string
-	pregen      int // >0: cycle this many pre-built bodies (throughput tests)
+	pregen      int    // >0: cycle this many pre-built bodies (throughput tests)
+	body        string // "events": {"events":[...]} (TREMOR); "array": [...] (Fluent Bit, Vector)
 	toFile      string
 	count       int
 	attack      string
@@ -69,6 +70,7 @@ func main() {
 	flag.StringVar(&o.toFile, "to-file", "", "instead of sending, write -count events as JSON lines to this file (input for collectors and other pipelines)")
 	flag.IntVar(&o.count, "count", 100000, "events to write with -to-file")
 	flag.IntVar(&o.pregen, "pregen", 0, "pre-build this many batch bodies and cycle them, so generation cost does not compete with the server for CPU (timestamps and spikes are fixed; throughput tests only)")
+	flag.StringVar(&o.body, "body", "events", `request body: "events" sends {"events":[...]} (TREMOR's /ingest); "array" sends a bare JSON array of the same events (other collectors' HTTP inputs, for benchmarks)`)
 	flag.IntVar(&o.gen.Services, "services", 3, "number of services")
 	flag.Uint64Var(&o.gen.Seed, "seed", 42, "RNG seed")
 	flag.DurationVar(&o.gen.SpikeEvery, "spike-every", 0, "start an error spike every this often (0 = none)")
@@ -95,6 +97,10 @@ func main() {
 	}
 	if o.rate <= 0 || o.batch < 1 || o.concurrency < 1 || o.duration <= 0 {
 		fmt.Fprintln(os.Stderr, "loadgen: rate, batch, concurrency and duration must be positive")
+		os.Exit(2)
+	}
+	if o.body != "events" && o.body != "array" {
+		fmt.Fprintln(os.Stderr, `loadgen: -body must be "events" or "array"`)
 		os.Exit(2)
 	}
 
@@ -244,16 +250,20 @@ func pregenerate(o options) [][]byte {
 	var buf bytes.Buffer
 	for i := range pool {
 		buf.Reset()
-		encodeBatch(&buf, gen.Batch(0, time.Now(), o.batch))
+		encodeBatch(&buf, o.body, gen.Batch(0, time.Now(), o.batch))
 		pool[i] = bytes.Clone(buf.Bytes())
 	}
 	return pool
 }
 
-func encodeBatch(buf *bytes.Buffer, events []wireEvent) {
-	if err := json.NewEncoder(buf).Encode(struct {
+func encodeBatch(buf *bytes.Buffer, format string, events []wireEvent) {
+	var v any = struct {
 		Events []wireEvent `json:"events"`
-	}{events}); err != nil {
+	}{events}
+	if format == "array" {
+		v = events
+	}
+	if err := json.NewEncoder(buf).Encode(v); err != nil {
 		panic(err) // only possible on a programming error
 	}
 }
@@ -268,7 +278,7 @@ func worker(o options, client *http.Client, gen *Generator, pool [][]byte, jobs 
 			next++
 		} else {
 			buf.Reset()
-			encodeBatch(&buf, gen.Batch(j.elapsed, time.Now(), o.batch))
+			encodeBatch(&buf, o.body, gen.Batch(j.elapsed, time.Now(), o.batch))
 			body = buf.Bytes()
 		}
 		c.eventsSent.Add(int64(o.batch)) // once per batch, not per retry

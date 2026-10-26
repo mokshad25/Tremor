@@ -1,0 +1,4 @@
+# vector 0.59.0, bench/compare/vector.toml with acknowledgements.enabled = false; 600k ev/s offered, 30 s
+run	accepted_eps	acked_events	on_disk_events	p99_ms
+1	47736	1584200	1584200	4309
+2	56855	1790200	1790200	3052

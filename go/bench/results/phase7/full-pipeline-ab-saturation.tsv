@@ -1,0 +1,8 @@
+# old = regexp masker (HEAD 9e5d1de), new = single-pass scan; alternating; 600k ev/s offered, 30 s, GOMAXPROCS=4 server and loadgen
+run	build	accepted_eps	offered_eps	429	dropped	p99_ms
+1	old	121831	597035	141232	2038	634.655
+1	new	329477	599326	78602	2444	275.66819
+2	old	123255	597447	142866	0	337.921619
+2	new	319364	599179	83963	97	223.065176
+3	old	125530	597103	142159	0	374.522742
+3	new	313669	599205	82888	2887	296.353672

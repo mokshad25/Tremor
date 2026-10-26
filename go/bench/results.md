@@ -206,7 +206,7 @@ The false positives are random numeric IDs that pass Luhn or Verhoeff, or look l
 | max sustainable (10k steps, ≤1% 429) | **150,000 ev/s** | 140,000 ev/s | `results/phase4/maxrate-redact-{on,off}.tsv` |
 | accepted at saturation (300k offered; 3 alternating 30 s runs) | 173,466 / 169,846 / 166,202 (mean 169,838) | 159,620 / 152,332 / 158,212 (mean 156,721) | `results/phase4/redact-cost-saturation.tsv` |
 
-There's no measurable cost at this stage. Redaction (about 1.9 µs per loadgen event, `microbench.txt`) runs in parallel gateway goroutines, and it shortens messages before the bottleneck. Shard Drain masking measured 7,506 ns per raw message vs 6,705 ns per redacted message. This has to be re-measured after the Phase 7 masker optimisation.
+There's no measurable cost at this stage. Redaction (about 1.9 µs per loadgen event, `microbench.txt`) runs in parallel gateway goroutines, and it shortens messages before the bottleneck. Shard Drain masking measured 7,506 ns per raw message vs 6,705 ns per redacted message. Re-measured after the Phase 7 masker optimisation: see Phase 7, *Redaction cost, re-measured*.
 
 ## Phase 5: security detection (2026-10-15)
 
@@ -281,3 +281,61 @@ Incidents seen in the log during the run: brute force (sshd), credential stuffin
 | Human scoring | `summaries/scoring-sheet.md`, to be filled in |
 
 With the LLM disabled, every incident gets the template summary (`TestFallbackWithLLMDisabled`).
+
+## Phase 7: pprof-guided masker, Vector and Fluent Bit (2026-10-26)
+
+Same machine and OS. Raw: `results/phase7/`. Docker containers from unrelated projects were running but idle (about 16% of one core in total), and this laptop's absolute numbers drift between sessions: the same build accepted 171k–329k ev/s at saturation across today's runs. Every comparison below therefore alternates its contenders within one session, and the conclusions rest on those within-session comparisons.
+
+### Profile (`results/phase7/mask-cpu-before-top.txt`)
+
+A CPU profile of `BenchmarkMask` over the 100,473 real fixture messages put about 70% of samples under `regexp.(*Regexp).backtrack`: the five regexp passes of the masker, as Phase 3 predicted.
+
+### Optimisation: single-pass masker
+
+The five regexp rules (UUID, 0x hex, long hex, IP, prefixed ID) now run as one hand-written scan; NUM stays a hand-written second pass. `internal/drain/mask.go` explains why the scan is exact rather than approximate. Checks:
+
+- byte-identical to the regexp implementation (kept as `mask_regex_test.go`) on all 130,473 fixture inputs, non-ASCII included
+- `FuzzMaskMatchesRegex`: 19.4 million fuzzed inputs, no difference (5 minutes)
+- unchanged parity with Python: every ASCII input of `masks_python.jsonl.gz` identical, and identical drain3 cluster ids on both drain3 fixtures
+
+The differential test caught one real case during development: an IP's port can be a 12+ digit run, which drain3's long-hex rule masks before the IP rule runs (`10.1.2.3:8080123456789012` → `<IP>:<HEX>`).
+
+| benchmark (10 runs, benchstat) | regexp | single pass | change |
+|---|---|---|---|
+| `BenchmarkMask`, real messages | 7,843 ns ± 7% | 656 ns ± 3% | **−91.6%** (p=0.000) |
+| allocations / bytes per message | 21 / 879 B | 1 / 100 B | −95% / −89% |
+| `BenchmarkMaskAndAdd` (mask + Drain) | 11,691 ns | 1,069 ns ± 2% | **−90.9%** |
+
+After the change (`mask-and-add-cpu-after-top.txt`), regexp is gone from the profile; the scan itself, OS polling and `strings.Fields` in Drain lead.
+
+### Full pipeline, before vs after (`full-pipeline-ab-saturation.tsv`)
+
+Old binary built from 9e5d1de, new from this change, alternated 3 times: 600,000 ev/s offered for 30 s, server and loadgen at GOMAXPROCS=4, gateway → redaction → WAL (fsync) → Drain + detection.
+
+| | run 1 | run 2 | run 3 | mean |
+|---|---|---|---|---|
+| regexp masker | 121,831 | 123,255 | 125,530 | 123,539 ev/s |
+| single-pass masker | 329,477 | 319,364 | 313,669 | **320,837 ev/s (+160%)** |
+
+Max sustainable after the change (`bench/maxrate.sh`, 10k steps of 20 s, ≤1% 429): **230,000 ev/s**, p99 106 ms (`maxrate-full-pipeline.tsv`). Phase 3 measured 150,000 ev/s in an earlier session, so that pair is indicative only; the A/B above is the controlled comparison.
+
+### TREMOR vs Vector vs Fluent Bit (`compare.tsv`, `bench/compare.sh`)
+
+Same machine, same synthetic events from `loadgen`, 600,000 ev/s offered for 30 s, 3 runs alternating the four contenders. Each receives batches of 100 events over HTTP and writes every event to local disk. Vector and Fluent Bit get the same events as a bare JSON array (`loadgen -body array`) so that both split them into records natively. Vector runs with `--threads 4`, Fluent Bit with 4 output workers, TREMOR with GOMAXPROCS=4. "On disk" is counted after a graceful stop issued as soon as the load ends.
+
+| | work per event | accepted ev/s (mean, range) | acked events on disk | p99 ms (mean) | peak RSS |
+|---|---|---|---|---|---|
+| **TREMOR** | redaction, WAL with fsync before ack, Drain, detection | **236,442** (171k–291k) | 100% | 598 | 184 MB |
+| TREMOR, redaction off | the same without redaction | 296,778 (277k–335k) | 100% | 605 | 188 MB |
+| Vector 0.59.0 | JSON decode, file sink, ack after write (no fsync) | 62,407 (54k–67k) | 100% | 2,493 | 211 MB |
+| Fluent Bit 5.1.5 | JSON decode, file output, ack on buffering (no fsync) | 60,570 (55k–66k) | **98.4%** | 1,990 | 54 MB |
+
+Reading this honestly:
+
+- **The work is comparable, not identical.** TREMOR does more per event (redaction, detection, and an fsync before every acknowledgement) and still accepts about 3.8× more here. Vector and Fluent Bit run near-default configurations written for this test (`bench/compare/`), not tuned ones; a tuned deployment, a different input (OTLP, files) or another machine could narrow the gap. Vector's end-to-end acknowledgements are not what limits it: with them off it accepted 47,736 and 56,855 ev/s (`vector-acks-off.tsv`).
+- **Fluent Bit acknowledges before data is durable.** Stopped right after the load, it had written 91,856 fewer events than it had acknowledged across the three runs (1.6%). At 20,000 ev/s the loss was 5–8% when stopped immediately and 0% with a 5 s pause first, so these are records still in its memory buffer at shutdown. Vector (ack after write) and TREMOR (ack after fsync) lost none.
+- **Memory:** Fluent Bit is far lighter (37–54 MB); TREMOR and Vector are in the same range.
+
+### Redaction cost, re-measured
+
+Phase 4 found no measurable redaction cost, because the regexp masker was the bottleneck downstream. With that gone, redaction shows: in the comparison above, TREMOR accepted 236,442 ev/s with redaction and 296,778 without, about **20%**, above the plan's 15% target. The ranges overlap (171k–291k vs 277k–335k), so `bench/redact_cost.sh` should be re-run on a quieter machine before quoting a figure; redaction is the next profiling target.
