@@ -40,7 +40,7 @@ _Each team member should add their decisions here as they implement their compon
 
 ### What "new" means
 - **Decision:** A template is new when it is first seen after warm-up, or when a historically rare one (<0.1% of traffic before the surge) appears 3+ times in 60 s. The flag stays on for 300 s.
-- **Tradeoff:** The new-pattern detector opens an incident per new template with no minimum count, so "rare" alone would page on every occasional line. Requiring a surge avoids that, at the cost of missing a rare line that returns only once or twice. The 300 s TTL keeps the flag stable during an incident instead of flapping.
+- **Tradeoff:** Without the surge rule, "rare" alone would flag every occasional line. Requiring a surge avoids that, at the cost of missing a rare line that returns only once or twice. The 300 s TTL keeps the flag stable during an incident instead of flapping.
 
 ### Template state persistence uses drain3's jsonpickle
 - **Decision:** `persist`/`restore` wrap drain3's own serialized state in a versioned JSON envelope, written atomically.
@@ -73,3 +73,11 @@ _Each team member should add their decisions here as they implement their compon
 ### One detection engine per service
 - **Decision:** Eval (and the production pipeline) route each event to its own service's `DetectionEngine`.
 - **Tradeoff:** Baselines are learned per service, and a single quiet service is detectable. The cost is N engines instead of one. A whole-stream engine misses single-service silence entirely.
+
+### New-pattern pages on a surge, not a single line
+- **Decision:** `NewPatternDetector` opens an incident for a template only once 5 lines the miner flagged as new arrive within 30 s (`NEW_PATTERN_MIN_COUNT`). It opens at WARNING, or HIGH if any of those lines is an ERROR, and resolves after 60 s with no new-flagged line of that template.
+- **Tradeoff:** A brand-new line that occurs fewer than 5 times in 30 s never pages. On the eval, unlabelled new templates in normal traffic peak at 3 lines per 30 s, so 5 leaves a small margin; any new line paging (the original rule) cost 1.94 FP/h at WARNING+. A new pattern that persists past the miner's 300 s novelty TTL resolves, because it has become part of normal traffic.
+
+### Latency baseline floor is relative
+- **Decision:** `LatencyDetector` judges the window's p95 against its own EWMA baseline with `sigma_eff >= 10%` of the baseline p95 (and >= 1 ms), the same z thresholds as error rate, and no CRITICAL rule.
+- **Tradeoff:** Thresholds become relative (+30% p95 is INFO, +50% WARNING, +80% HIGH), whatever the service's absolute latency, and steady p95 noise cannot shrink sigma to nothing. On the eval, p95 z outside the spike stays at or below 1.37. The cost: a slow service gets a wide band in milliseconds, and a latency regression smaller than +30% is never flagged.

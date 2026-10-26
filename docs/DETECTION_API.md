@@ -151,11 +151,15 @@ Detectors:
 |---|---|---|
 | `ErrorRateDetector` | `ERROR_RATE` | z of r = errors/n vs EWMA baseline; CRITICAL if r > 50% with n >= 20 |
 | `SilenceDetector` | `SILENCE` | after warm-up, HIGH if no line for 10 s; resolves when lines return |
-| `NewPatternDetector` | `NEW_PATTERN` | after warm-up, `is_new_template` opens an incident per template id: WARNING if the line is ERROR, else INFO; resolves after 60 s without that template |
-| `LatencyDetector` | `LATENCY` | z of p95 `duration_ms` over 30 s (>= 20 samples) vs EWMA baseline |
+| `NewPatternDetector` | `NEW_PATTERN` | after warm-up, an incident per template id once 5+ lines flagged `is_new_template` arrive within 30 s (`NEW_PATTERN_MIN_COUNT`): WARNING, or HIGH if any of them is ERROR; resolves after 60 s without a new-flagged line of that template |
+| `LatencyDetector` | `LATENCY` | z of p95 `duration_ms` over 30 s (>= 20 samples) vs its own EWMA baseline, `sigma_eff >= max(10% of baseline, 1 ms)`; INFO/WARNING/HIGH at z 3/5/8, no CRITICAL rule; same gated update and 10-tick clear rule as error rate |
 
 New-pattern uses **only** the miner's `is_new` flag to decide what is new; it keeps no
-seen-set of its own.
+seen-set of its own, only per-template arrival counts of the lines the miner flagged.
+The minimum count replaced the original "any new line opens an incident (INFO, or
+WARNING if ERROR)" rule: on the eval that rule paged on one-off new lines in normal
+traffic (1.94 FP/h at WARNING+) and scored the WARNING-level `new_pattern` scenario as
+INFO, so TREMOR (WARNING+) missed it.
 
 ## TemplateMinerLike (`app/core/detectors/base.py`)
 

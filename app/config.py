@@ -49,6 +49,7 @@ class Settings(BaseSettings):
     latency_sigma_min_ms: float = 1.0  # keeps z finite when baseline p95 is 0 ms
 
     # ── New pattern ──────────────────────────────────────────────────
+    new_pattern_min_count: int = 5  # new-template lines in the detection window to alert
     new_pattern_resolve_s: int = 60  # resolve after this long without the template
 
     # ── Alerts ───────────────────────────────────────────────────────

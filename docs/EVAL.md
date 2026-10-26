@@ -6,8 +6,8 @@
 
 ## Headline
 
-- **TREMOR**: 2/10 scenarios fully correct, F1 0.348, 4.65 false positives/hour.
-- **TREMOR (WARNING+)**: 7/10 scenarios fully correct, F1 0.727, 0.00 false positives/hour.
+- **TREMOR**: 5/10 scenarios fully correct, F1 0.538, 4.65 false positives/hour.
+- **TREMOR (WARNING+)**: 10/10 scenarios fully correct, F1 1.000, 0.00 false positives/hour.
 - **Static 5%**: 2/10 scenarios fully correct, F1 0.200, 7.74 false positives/hour.
 - **Rolling mean**: 0/10 scenarios fully correct, F1 0.130, 13.94 false positives/hour.
 
@@ -15,13 +15,13 @@
 
 | Metric | TREMOR | TREMOR (WARNING+) | Static 5% | Rolling mean |
 |---|---|---|---|---|
-| Precision | 25.0% | 100.0% | 13.0% | 7.7% |
-| Recall | 57.1% | 57.1% | 42.9% | 42.9% |
-| F1 | 0.348 | 0.727 | 0.200 | 0.130 |
-| Mean detection delay (s) | 31.0 | 36.8 | 18.7 | 16.0 |
-| Median detection delay (s) | 6.5 | 7.0 | 2.0 | 1.0 |
+| Precision | 36.8% | 100.0% | 13.0% | 7.7% |
+| Recall | 100.0% | 100.0% | 42.9% | 42.9% |
+| F1 | 0.538 | 1.000 | 0.200 | 0.130 |
+| Mean detection delay (s) | 18.6 | 22.0 | 18.7 | 16.0 |
+| Median detection delay (s) | 3.0 | 3.0 | 2.0 | 1.0 |
 | False positives / hour | 4.65 | 0.00 | 7.74 | 13.94 |
-| TP / FP / FN / dup | 4 / 12 / 3 / 0 | 4 / 0 / 3 / 0 | 3 / 20 / 4 / 1 | 3 / 36 / 4 / 4 |
+| TP / FP / FN / dup | 7 / 12 / 0 / 0 | 7 / 0 / 0 / 0 | 3 / 20 / 4 / 1 | 3 / 36 / 4 / 4 |
 
 ## ERROR_RATE only (apples-to-apples: the baselines only detect error rate)
 
@@ -42,10 +42,10 @@
 | steady | no alerts | ❌ 1 FP | ✅ quiet | ✅ quiet | ❌ 3 FP |
 | drift | ERROR_RATE payment-gateway [360–1200s] | ✅ 1/1 detected; delay 109s | ✅ 1/1 detected; delay 131s | ❌ 1/1 detected; 1 FP; delay 52s | ❌ 1/1 detected; 1 FP; delay 46s |
 | burst | ERROR_RATE payment-gateway [480–510s] | ✅ 1/1 detected; delay 3s | ✅ 1/1 detected; delay 4s | ❌ 1/1 detected; 3 FP; delay 2s | ❌ 1/1 detected; 2 FP; delay 1s |
-| outage | ERROR_RATE ledger [480–570s], NEW_PATTERN ledger [480–570s] | ❌ 1/2 detected; delay 2s | ❌ 1/2 detected; delay 2s | ❌ 1/2 detected; delay 2s | ❌ 1/2 detected; 2 FP; delay 1s |
+| outage | ERROR_RATE ledger [480–570s], NEW_PATTERN ledger [480–570s] | ✅ 2/2 detected; delay 2s, 2s | ✅ 2/2 detected; delay 2s, 2s | ❌ 1/2 detected; delay 2s | ❌ 1/2 detected; 2 FP; delay 1s |
 | silence | SILENCE payment-gateway [480–540s] | ❌ 1/1 detected; 2 FP; delay 10s | ✅ 1/1 detected; delay 10s | ❌ 0/1 detected; 3 FP | ❌ 0/1 detected; 5 FP |
-| new_pattern | NEW_PATTERN auth-service [480–720s] | ❌ 0/1 detected | ❌ 0/1 detected | ❌ 0/1 detected | ❌ 0/1 detected; 3 FP |
-| latency_spike | LATENCY payment-gateway [480–600s] | ❌ 0/1 detected | ❌ 0/1 detected | ❌ 0/1 detected; 1 FP | ❌ 0/1 detected; 3 FP |
+| new_pattern | NEW_PATTERN auth-service [480–720s] | ✅ 1/1 detected; delay 3s | ✅ 1/1 detected; delay 3s | ❌ 0/1 detected | ❌ 0/1 detected; 3 FP |
+| latency_spike | LATENCY payment-gateway [480–600s] | ✅ 1/1 detected; delay 1s | ✅ 1/1 detected; delay 2s | ❌ 0/1 detected; 1 FP | ❌ 0/1 detected; 3 FP |
 | noisy_normal | no alerts | ❌ 6 FP | ✅ quiet | ❌ 11 FP | ❌ 8 FP |
 | rotation | no alerts | ❌ 2 FP | ✅ quiet | ❌ 1 FP | ❌ 3 FP |
 | malformed_flood | no alerts | ❌ 1 FP | ✅ quiet | ✅ quiet | ❌ 6 FP |

@@ -22,6 +22,8 @@ from app.core.arrivals import ArrivalWindow
 from app.core.baseline import BaselineStore
 from app.core.detectors.base import Detector, Observation, TickContext
 from app.core.detectors.error_rate import ErrorRateDetector, ErrorRateReading
+from app.core.detectors.latency import LatencyDetector
+from app.core.detectors.new_pattern import NewPatternDetector
 from app.core.detectors.silence import SilenceDetector
 
 if TYPE_CHECKING:
@@ -84,8 +86,15 @@ class DetectionEngine:
         self.baselines = BaselineStore()
 
         self.error_rate = ErrorRateDetector(cfg, service)
+        self.latency = LatencyDetector(cfg, service)
         self.baselines.register(service, SignalType.ERROR_RATE.value, self.error_rate.baseline)
-        self.detectors: list[Detector] = [self.error_rate, SilenceDetector(cfg, service)]
+        self.baselines.register(service, SignalType.LATENCY.value, self.latency.baseline)
+        self.detectors: list[Detector] = [
+            self.error_rate,
+            SilenceDetector(cfg, service),
+            NewPatternDetector(cfg, service),
+            self.latency,
+        ]
 
     @property
     def warmed_up(self) -> bool:
