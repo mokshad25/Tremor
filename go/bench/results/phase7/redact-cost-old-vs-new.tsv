@@ -1,0 +1,14 @@
+# same session, alternating: old redactor (140a091) vs new, redaction on/off, 600k ev/s offered, 30 s, GOMAXPROCS=4
+run	build	redact	accepted_eps
+1	old	true	366781
+1	old	false	423883
+1	new	true	399301
+1	new	false	465221
+2	old	true	281790
+2	old	false	448777
+2	new	true	398289
+2	new	false	454367
+3	old	true	340420
+3	old	false	452635
+3	new	true	418965
+3	new	false	450213

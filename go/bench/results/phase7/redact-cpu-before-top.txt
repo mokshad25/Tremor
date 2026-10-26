@@ -1,0 +1,24 @@
+File: tremor
+Type: cpu
+Time: 2026-10-26 16:09:20 IST
+Duration: 20.14s, Total samples = 66.32s (329.25%)
+Active filters:
+   focus=internal/redact
+Showing nodes accounting for 14.25s, 21.49% of 66.32s total
+Dropped 126 nodes (cum <= 0.33s)
+Showing top 15 nodes out of 87
+      flat  flat%   sum%        cum   cum%
+     4.74s  7.15%  7.15%      4.74s  7.15%  internal/bytealg.IndexByteString
+     2.34s  3.53% 10.68%      7.02s 10.59%  internal/stringslite.Index
+     1.17s  1.76% 12.44%      2.03s  3.06%  github.com/mokshad/tremor/internal/redact.scanDigits
+     0.99s  1.49% 13.93%      3.37s  5.08%  github.com/mokshad/tremor/internal/redact.scanWords
+     0.91s  1.37% 15.30%      1.58s  2.38%  github.com/mokshad/tremor/internal/redact.scanIPs
+     0.56s  0.84% 16.15%      0.56s  0.84%  runtime.memequal
+     0.51s  0.77% 16.92%      1.21s  1.82%  github.com/mokshad/tremor/internal/redact.classifyWord
+     0.48s  0.72% 17.64%      0.48s  0.72%  github.com/mokshad/tremor/internal/redact.isUpper (inline)
+     0.45s  0.68% 18.32%      7.37s 11.11%  github.com/mokshad/tremor/internal/redact.indexFrom
+     0.42s  0.63% 18.95%      0.42s  0.63%  strings.EqualFold
+     0.40s   0.6% 19.56%      5.72s  8.62%  github.com/mokshad/tremor/internal/redact.scanUsernames
+     0.38s  0.57% 20.13%      0.79s  1.19%  strings.IndexAny
+     0.34s  0.51% 20.64%      0.34s  0.51%  github.com/mokshad/tremor/internal/redact.isHex (inline)
+     0.29s  0.44% 21.08%      0.73s  1.10%  github.com/mokshad/tremor/internal/redact.lowerASCII

@@ -338,4 +338,32 @@ Reading this honestly:
 
 ### Redaction cost, re-measured
 
-Phase 4 found no measurable redaction cost, because the regexp masker was the bottleneck downstream. With that gone, redaction shows: in the comparison above, TREMOR accepted 236,442 ev/s with redaction and 296,778 without, about **20%**, above the plan's 15% target. The ranges overlap (171k–291k vs 277k–335k), so `bench/redact_cost.sh` should be re-run on a quieter machine before quoting a figure; redaction is the next profiling target.
+Phase 4 found no measurable redaction cost, because the regexp masker was the bottleneck downstream. With that gone, redaction showed: in the comparison above, TREMOR accepted 236,442 ev/s with redaction and 296,778 without, about 20%, above the plan's 15% target.
+
+### Optimisation: single-pass keyword search in the redactor
+
+**Profile** (`redact-cpu-before-top.txt`, the live server at saturation): the redactor was 25% of all server CPU, and almost half of that (7.4 of 16.5 s) was `indexFrom`: `scanKeyValueSecrets` and `scanUsernames` ran one `strings.Index` per keyword, about 40 of them, over every message and every attribute value. Their first bytes are common letters (`s`, `t`, `p`, `u`), so the byte search kept stopping, and loadgen's one short `host` attribute per event paid the fixed cost of all of them.
+
+**Change** (`internal/redact/scan.go`): one pass over the lowered text finds every keyword, using a table indexed by the first two bytes that rejects almost every position with one load. Each keyword's occurrences and its resume-after-previous-match rule are kept exactly, and the scanners still visit keywords in list order, so findings are identical by construction. Two cheaper early rejects: the API-key prefix loop is skipped when no prefix starts with the word's first byte, and the digest-label check requires the preceding ':' first.
+
+**Checks:**
+
+- redacted text and findings byte-identical to the original code (commit 140a091) on all 5,000 labelled lines, the benchmark lines and edge cases (5,023 inputs)
+- `TestFindMatchesReference` and `FuzzFindMatchesReference` against the per-keyword search, kept as `scan_ref_test.go`: 42.1 million fuzzed inputs, no difference
+- precision/recall unchanged: 94.9% / 100%, 0 values leaked
+
+| benchmark (10 runs, benchstat, `benchstat-redact.txt`) | before | after | change |
+|---|---|---|---|
+| `BenchmarkRedact` (4 typical lines) | 2,352 ns | 1,329 ns | **−43.5%** |
+| `BenchmarkFindCorpus` (5,000 labelled lines) | 2,722 ns | 1,372 ns | **−49.6%** |
+| `BenchmarkFindShortAttr` (`payment-gateway-2`) | 355 ns | 212 ns | **−40.3%** |
+
+**Throughput cost of redaction, full pipeline** (600,000 ev/s offered, 30 s, GOMAXPROCS=4, alternating):
+
+| measurement | redaction on | redaction off | cost |
+|---|---|---|---|
+| `bench/redact_cost.sh`, 5 runs (`redact-cost.tsv`) | 422,854 ev/s | 467,758 ev/s | **9.6%** |
+| same session, old vs new redactor, 3 runs each (`redact-cost-old-vs-new.tsv`): old | 329,664 | 441,765 | 25.4% |
+| same session: new | 405,518 | 456,600 | **11.2%** |
+
+Redaction now costs about 10–11%, inside the plan's 15% target, and full-pipeline throughput with redaction on rose 23% in the same-session comparison. "On" was below "off" in every alternating pair. One old-redactor run was noisy (281,790 ev/s), which widens the old figure; the new figure is consistent across both measurements. These sessions ran faster in absolute terms than the comparison earlier in the day, which is the session drift noted at the top of this phase.

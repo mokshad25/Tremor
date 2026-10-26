@@ -38,6 +38,15 @@ var apiKeyPrefixes = []struct {
 	{"AKIA", 16}, {"ASIA", 16}, // AWS access key id (exactly 16 after the prefix)
 }
 
+// apiKeyFirstByte marks the first bytes of apiKeyPrefixes, so most words
+// skip the prefix comparisons entirely.
+var apiKeyFirstByte = func() (t [256]bool) {
+	for _, p := range apiKeyPrefixes {
+		t[p.prefix[0]] = true
+	}
+	return t
+}()
+
 // scanWords classifies whole tokens: known API key formats, JWTs, PAN, and
 // high-entropy strings.
 func scanWords(s string, fs []Finding) []Finding {
@@ -90,6 +99,9 @@ func classifyWord(w string) (Kind, bool) {
 		return 0, false
 	}
 	for _, p := range apiKeyPrefixes {
+		if !apiKeyFirstByte[w[0]] {
+			break // no prefix starts with this byte
+		}
 		if strings.HasPrefix(w, p.prefix) && len(w)-len(p.prefix) >= p.minRest {
 			if p.prefix == "AKIA" || p.prefix == "ASIA" {
 				if len(w) != 20 || !allUpperAlnum(w) {
@@ -165,6 +177,102 @@ func indexFrom(ls, needle string, from int) int {
 	return from + k
 }
 
+// Keyword search. scanKeyValueSecrets and scanUsernames look for about 40
+// keywords; searching for each one separately (strings.Index per keyword)
+// was half of the redactor's CPU under load (Phase 7 pprof), because their
+// first bytes are common letters and every short attribute value paid for
+// all of them. keywordHits finds them all in one pass over the lowercased
+// text instead: a table indexed by the first two bytes rejects almost every
+// position with one load.
+//
+// The result is exactly what a per-keyword loop of
+//
+//	for i := 0; ; { k := indexFrom(ls, kw, i); if k < 0 { break }; i = k + len(kw); ... }
+//
+// visits: for each keyword, its occurrences left to right, each searched
+// from the end of the previous one (so a self-overlapping keyword such as
+// "/home/" in "/home/home/" is found once, as before).
+
+const (
+	kwSecret     = iota // secretKeys
+	kwUserKey           // userKeys
+	kwUserPhrase        // userPhrases
+)
+
+type keyword struct {
+	text string
+	list uint8
+}
+
+// keywordHit is one occurrence of keywords[kw] at pos in the lowered text.
+type keywordHit struct {
+	kw  uint8
+	pos int
+}
+
+var (
+	keywords  []keyword             // secretKeys, then userKeys, then userPhrases, in list order
+	pairGroup [1 << 16]uint8        // first two bytes -> 1 + index into pairCands; 0 = no keyword
+	pairCands [][]uint8             // keyword indices sharing a first-two-byte pair
+	kwStart   [kwUserPhrase + 2]int // keywords[kwStart[l]:kwStart[l+1]] is list l
+)
+
+func init() {
+	for l, list := range [][]string{secretKeys, userKeys, userPhrases} {
+		kwStart[l] = len(keywords)
+		for _, t := range list {
+			if len(t) < 2 || t != strings.ToLower(t) {
+				panic("redact: keywords must be lowercase and at least 2 bytes: " + t)
+			}
+			keywords = append(keywords, keyword{t, uint8(l)})
+		}
+	}
+	kwStart[kwUserPhrase+1] = len(keywords)
+	if len(keywords) > 255 {
+		panic("redact: too many keywords")
+	}
+	for i, k := range keywords {
+		p := uint16(k.text[0])<<8 | uint16(k.text[1])
+		if pairGroup[p] == 0 {
+			pairCands = append(pairCands, nil)
+			pairGroup[p] = uint8(len(pairCands))
+		}
+		g := pairGroup[p] - 1
+		pairCands[g] = append(pairCands[g], uint8(i))
+	}
+}
+
+// keywordHits appends to buf every keyword occurrence in ls, in position
+// order, with the per-keyword semantics described above.
+func keywordHits(ls string, buf []keywordHit) []keywordHit {
+	start := len(buf)
+	for i := 0; i+1 < len(ls); i++ {
+		g := pairGroup[uint16(ls[i])<<8|uint16(ls[i+1])]
+		if g == 0 {
+			continue
+		}
+		for _, kw := range pairCands[g-1] {
+			t := keywords[kw].text
+			if strings.HasPrefix(ls[i:], t) && !overlapsPrevious(buf[start:], kw, i) {
+				buf = append(buf, keywordHit{kw, i})
+			}
+		}
+	}
+	return buf
+}
+
+// overlapsPrevious reports whether keyword kw's previous hit ends after i,
+// i.e. a per-keyword search would resume past i. Hits are few, so a scan
+// back to that keyword's last hit is cheaper than per-call state.
+func overlapsPrevious(hits []keywordHit, kw uint8, i int) bool {
+	for j := len(hits) - 1; j >= 0; j-- {
+		if hits[j].kw == kw {
+			return i < hits[j].pos+len(keywords[kw].text)
+		}
+	}
+	return false
+}
+
 // scanBearer masks the credential after "Bearer " / "Basic ".
 func scanBearer(s, ls string, fs []Finding) []Finding {
 	for _, scheme := range []string{"bearer ", "basic "} {
@@ -202,17 +310,18 @@ var secretKeys = []string{
 }
 
 // scanKeyValueSecrets masks values of password=..., "token": "...", etc.
-func scanKeyValueSecrets(s, ls string, fs []Finding) []Finding {
+// hits are keywordHits over the lowered text.
+func scanKeyValueSecrets(s string, hits []keywordHit, fs []Finding) []Finding {
 	if !strings.ContainsAny(s, "=:") {
 		return fs
 	}
-	for _, key := range secretKeys {
-		for i := 0; ; {
-			k := indexFrom(ls, key, i)
-			if k < 0 {
-				break
+	for kw := kwStart[kwSecret]; kw < kwStart[kwSecret+1]; kw++ {
+		key := keywords[kw].text
+		for _, h := range hits {
+			if int(h.kw) != kw {
+				continue
 			}
-			i = k + len(key)
+			k := h.pos
 			if k > 0 && (isAlnum(s[k-1]) || s[k-1] == '_') {
 				continue // e.g. "my_password_hint" is fine; "xpassword" is not this key
 			}
@@ -282,19 +391,20 @@ var userPhrases = []string{
 	"/home/", "/users/", // a home directory names its owner
 }
 
-// scanUsernames finds values that identify a user account.
-func scanUsernames(s, ls string, fs []Finding) []Finding {
+// scanUsernames finds values that identify a user account. hits are
+// keywordHits over ls, the lowered text.
+func scanUsernames(s, ls string, hits []keywordHit, fs []Finding) []Finding {
 	hasKV := strings.ContainsAny(s, "=:")
-	for _, key := range userKeys {
+	for kw := kwStart[kwUserKey]; kw < kwStart[kwUserKey+1]; kw++ {
 		if !hasKV {
 			break
 		}
-		for i := 0; ; {
-			k := indexFrom(ls, key, i)
-			if k < 0 {
-				break
+		key := keywords[kw].text
+		for _, h := range hits {
+			if int(h.kw) != kw {
+				continue
 			}
-			i = k + len(key)
+			k := h.pos
 			if k > 0 && (isAlnum(s[k-1]) || s[k-1] == '_' || s[k-1] == '.') {
 				continue
 			}
@@ -307,13 +417,13 @@ func scanUsernames(s, ls string, fs []Finding) []Finding {
 			}
 		}
 	}
-	for _, ph := range userPhrases {
-		for i := 0; ; {
-			k := indexFrom(ls, ph, i)
-			if k < 0 {
-				break
+	for kw := kwStart[kwUserPhrase]; kw < kwStart[kwUserPhrase+1]; kw++ {
+		ph := keywords[kw].text
+		for _, h := range hits {
+			if int(h.kw) != kw {
+				continue
 			}
-			i = k + len(ph)
+			k := h.pos
 			if k > 0 && isAlnum(s[k-1]) {
 				continue
 			}
@@ -601,6 +711,9 @@ func idContext(s string, p int) bool {
 // or "MD5:": key fingerprints and content digests are public identifiers,
 // not secrets, even though they look random.
 func afterDigestLabel(s string, i int) bool {
+	if i == 0 || s[i-1] != ':' { // every label ends with ':'
+		return false
+	}
 	for _, lbl := range []string{"sha256:", "sha1:", "sha512:", "md5:"} {
 		if i >= len(lbl) && strings.EqualFold(s[i-len(lbl):i], lbl) {
 			return true

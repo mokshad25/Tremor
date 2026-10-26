@@ -1,0 +1,12 @@
+# bench/redact_cost.sh, SAT_RATE=600000 RUNS=5, new redactor
+run	redact	accepted_eps	429	redactions_total
+1	true	415710	55224	4091648
+1	false	463261	40847	0
+2	true	404137	58545	3980780
+2	false	456824	42770	0
+3	true	424133	52498	4179121
+3	false	463077	40877	0
+4	true	433980	49695	4271787
+4	false	480567	35638	0
+5	true	436311	48994	4294937
+5	false	475059	37265	0

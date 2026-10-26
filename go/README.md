@@ -14,8 +14,9 @@ A crash-safe, privacy-first security log pipeline: an individual Go rebuild of T
 - an alert correlator that groups alerts into incidents, with webhook and Slack notifications
 - LLM incident summaries (Groq or any OpenAI-compatible API) that only explain: validated, cited, cached, rate-limited, with a deterministic fallback
 - a pprof-guided single-pass masker (mask + Drain 10.9 µs → 1.1 µs per message), CI for the Go tests, and a reproducible comparison with Vector and Fluent Bit (`bench/compare.sh`)
+- a pprof-guided single-pass keyword search in the redactor (−43% to −50% per event; redaction now costs 10–11% of full-pipeline throughput, inside the 15% target)
 
-Still open in Phase 7: the redaction stage now costs about 20% of full-pipeline throughput (above the 15% target), p99 ingest-to-alert latency is not yet measured, and the LLM summary scoring sheet is not yet filled in.
+Still open in Phase 7: p99 ingest-to-alert latency is not yet measured, and the LLM summary scoring sheet is not yet filled in.
 
 ```
 producers ──HTTP / OTLP──▶ gateway ──▶ PII redaction ──▶ WAL (fsync, ack) ──▶ ring ──▶ shards ──▶ correlator ──▶ notifier ──▶ webhook / Slack
@@ -32,7 +33,7 @@ producers ──HTTP / OTLP──▶ gateway ──▶ PII redaction ──▶ W
 | Throughput, full pipeline, 4 cores | 230,000 ev/s sustained (≤1% 429), with PII redaction on; +160% at saturation from the single-pass masker |
 | Same machine vs Vector 0.59 and Fluent Bit 5.1.5 (HTTP in, disk out) | TREMOR 236k ev/s with redaction, WAL fsync and detection; Vector 62k; Fluent Bit 61k and 1.6% of acknowledged events not on disk after shutdown (near-default configs; caveats in bench/results.md) |
 | OpenTelemetry Collector, config only | 20,000/20,000 over OTLP/HTTP and gRPC; 50,000/50,000 under forced overload |
-| Raw PII on disk | 0 values; redaction recall 100% / precision 94.9% on a 4,734-value labelled set |
+| Raw PII on disk | 0 values; redaction recall 100% / precision 94.9% on a 4,734-value labelled set; redaction costs 10–11% of full-pipeline throughput |
 | Security rules (simulated 21 days, 45 attacks) | every brute-force, stuffing and privilege attack paged; 0 paging false alarms in 504 attack-free hours (16 with the NAT guards off) |
 | Real sshd attacks (Loghub OpenSSH sample) | all 6 heavy-failure IPs alerted |
 | LLM summaries never decide | incidents page with a template before any model call, and nothing reads a summary back; invalid or uncited output falls back to the template (tested, including with the LLM disabled) |

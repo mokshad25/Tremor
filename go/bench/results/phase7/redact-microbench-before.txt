@@ -1,0 +1,36 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/mokshad/tremor/internal/redact
+cpu: Apple M2
+BenchmarkRedact-8          	  507248	      2374 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  508392	      2339 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  538020	      2291 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  429960	      2364 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  536673	      2276 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  526784	      2377 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  498165	      2325 ns/op	     712 B/op	      14 allocs/op
+BenchmarkRedact-8          	  453388	      2492 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  517436	      2432 ns/op	     712 B/op	      15 allocs/op
+BenchmarkRedact-8          	  525526	      2334 ns/op	     712 B/op	      15 allocs/op
+BenchmarkFindCorpus-8      	  395270	      2735 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  448869	      2709 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  452264	      2699 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  421429	      2776 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  452954	      2725 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  425197	      2698 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  448294	      2751 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  432436	      2672 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  402883	      2753 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindCorpus-8      	  422689	      2718 ns/op	     304 B/op	       7 allocs/op
+BenchmarkFindShortAttr-8   	 3444030	       354.9 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3387235	       351.6 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3281846	       367.0 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3403233	       354.2 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3444397	       355.9 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3407482	       350.3 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3408781	       357.7 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3453978	       352.8 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3386802	       359.5 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFindShortAttr-8   	 3432055	       349.9 ns/op	       8 B/op	       1 allocs/op
+PASS
+ok  	github.com/mokshad/tremor/internal/redact	36.019s

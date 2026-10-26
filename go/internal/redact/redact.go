@@ -174,10 +174,12 @@ var priority = [numKinds]int{
 func Find(s string) []Finding {
 	var fs []Finding
 	ls := lowerASCII(s) // one lowercase copy for every keyword search
+	var hb [16]keywordHit
+	hits := keywordHits(ls, hb[:0])
 	fs = scanWords(s, fs)
 	fs = scanBearer(s, ls, fs)
-	fs = scanKeyValueSecrets(s, ls, fs)
-	fs = scanUsernames(s, ls, fs)
+	fs = scanKeyValueSecrets(s, hits, fs)
+	fs = scanUsernames(s, ls, hits, fs)
 	fs = scanEmails(s, fs)
 	fs = scanDigits(s, fs)
 	fs = scanIPs(s, fs)
