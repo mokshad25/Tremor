@@ -367,3 +367,24 @@ Phase 4 found no measurable redaction cost, because the regexp masker was the bo
 | same session: new | 405,518 | 456,600 | **11.2%** |
 
 Redaction now costs about 10–11%, inside the plan's 15% target, and full-pipeline throughput with redaction on rose 23% in the same-session comparison. "On" was below "off" in every alternating pair. One old-redactor run was noisy (281,790 ev/s), which widens the old figure; the new figure is consistent across both measurements. These sessions ran faster in absolute terms than the comparison earlier in the day, which is the session drift noted at the top of this phase.
+
+### Ingest-to-alert latency (`bench/latency.sh`, `ingest-to-alert.tsv`)
+
+**What is measured.** For every OPEN or ESCALATED alert: the gateway's receive time of the alert's newest line (`SourceSeqs.Last`) to the moment the alert leaves detection. That spans the HTTP gateway, redaction, the WAL write and fsync before the ack, routing, the shard queue, Drain and detection, including the wait for the next 1 s tick for anomaly alerts. Detection stays clock-free: the processor attaches the newest line's receive time from event data (`Alert.EvidenceReceivedAt`), and the server stamps the wall clock as the alert is emitted. The value is logged per alert (`ingest_to_alert_ms`) and exported as `tremor_ingest_to_alert_seconds`. Not counted: resolutions (not alerts), SILENCE (triggered by the absence of lines, so there is no line to measure from), and lines received before the process started (WAL replay). Notification delivery after detection (correlator, LLM summary, webhook) is not included.
+
+**Run.** A fresh server per rate, 6 minutes of loadgen traffic over 6 services with an error spike every 40 s (10 s at 50% errors) and every attack type injected (`-attack all`, first at 30 s, then every 90 s), GOMAXPROCS=4 for server and loadgen. Percentiles are exact, from every alert in the server log (`ingest-to-alert-per-alert.tsv`).
+
+| offered ev/s | accepted ev/s | alerts measured | p50 | p90 | p99 | max |
+|---|---|---|---|---|---|---|
+| 10,000 | 9,999 | 30 (24 error rate, 6 security) | 23.2 ms | 27.6 ms | 37.6 ms | 37.6 ms |
+| 50,000 | 49,998 | 30 (24 error rate, 6 security) | 12.0 ms | 16.1 ms | 84.9 ms | 84.9 ms |
+| 150,000 | 149,540 | 28 (24 error rate, 4 security) | 9.9 ms | 15.1 ms | 19.4 ms | 19.4 ms |
+
+**Target met:** p99 ingest-to-alert under 500 ms; every one of the 88 alerts arrived in under 85 ms. Reading it honestly:
+
+- With 28–30 alerts per rate the p99 is the maximum, so the claim is "every alert under 85 ms", not a precise 99th percentile; the Prometheus histogram accumulates a larger sample on a long-running server.
+- Security alerts (p50 5–8 ms) fire right after the line that completes the pattern. Error-rate alerts wait for the tick, but a tick runs as soon as the first line of the next second arrives, so under load the wait is milliseconds; that is why latency falls as the rate rises. On a nearly idle service the wall-clock ticker drives ticks instead, which can add up to a second.
+- These rates are below the 230,000 ev/s maximum. At saturation the gateway sheds load with 429s rather than queueing, so accepted lines keep similar latency, but that was not measured here.
+- At 150,000 ev/s the credential-stuffing attack produced no alert (it did at 10,000 and 50,000), which is why only 4 security alerts were measured there. This run measures latency, not detection rate; the detection numbers for the security rules are in Phase 5.
+
+While building this, `bench/live_attacks.sh` turned out to produce an invalid config: it inserted a second `security:` block under `detect:`, which `config.example.yaml` already has. Both scripts now set the existing `privilege_learn_s` key instead, and `live_attacks.sh` passes again (all four attack types alerted, 0 raw usernames in the server log).

@@ -37,6 +37,7 @@ Every stage exports Prometheus metrics through `client_golang` (the one Phase 6 
 | `tremor_wal_segments`, `_records_total`, `_bytes_total`, `_sync_errors_total`, `_segments_removed_total` | gauge, counter | |
 | `tremor_redactions_total` | counter | `type` (email, ip, card, …) — counts only |
 | `tremor_alerts_total` | counter | `type`, `severity` |
+| `tremor_ingest_to_alert_seconds` | histogram | | gateway receive time of an alert's newest line to the alert leaving detection (OPEN/ESCALATED, not silence; Phase 7) |
 | `tremor_incidents_total`, `tremor_incidents_open` | counter, gauge | `event` (opened, paged, closed) |
 | `tremor_llm_request_seconds` | histogram | |
 | `tremor_llm_requests_total`, `tremor_llm_tokens_total`, `tremor_summary_fallbacks_total` | counter | `result`, `kind` (prompt, completion) |

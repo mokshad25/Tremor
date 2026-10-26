@@ -42,6 +42,11 @@ type serviceState struct {
 	engine     *Engine
 	sec        *Security // nil when security rules are disabled
 	lastDeploy int64     // last deploy notice (unix seconds), to rate-limit them
+	// The service's most recently processed line. An alert's newest line
+	// (SourceSeqs.Last) is this one when the alert is emitted: tick alerts
+	// run before the next line is observed, rule alerts right after it.
+	lastSeq  uint64
+	lastRecv int64
 }
 
 // deployWords mark a line that announces a deploy or release.
@@ -127,6 +132,7 @@ func (p *Processor) Process(ev *event.Event) {
 	}
 	p.TickBefore(ev.ReceivedAt)
 	s := p.service(ev.Service)
+	s.lastSeq, s.lastRecv = ev.Seq, ev.ReceivedAt
 	c, change := s.drain.Add(p.masker.Mask(drain.MaskTokens(ev.Message)))
 	if ev.ReceivedAt <= (p.nextTick-1-int64(p.cfg.WindowS))*int64(time.Second) {
 		p.Stats.LateEvents++ // arrived before the window already passed; templated, not counted
@@ -188,6 +194,9 @@ func (p *Processor) tickThrough(last int64) {
 
 func (p *Processor) send(alerts []Alert) {
 	for _, a := range alerts {
+		if s := p.services[a.Service]; s != nil && a.SourceSeqs.Last != 0 && a.SourceSeqs.Last == s.lastSeq {
+			a.EvidenceReceivedAt = s.lastRecv
+		}
 		p.Stats.AlertsByType[a.Type]++
 		if p.emit != nil {
 			p.emit(a)

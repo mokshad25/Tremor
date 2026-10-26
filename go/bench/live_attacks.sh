@@ -10,7 +10,7 @@ RATE="${RATE:-2000}"
 DUR="${DUR:-6m}"
 stamp="$(date +%Y%m%d-%H%M%S)"
 cfg="$OUT/live-attacks-$stamp.yaml"
-sed 's/^detect:$/detect:\n  security:\n    privilege_learn_s: 20/' "$ROOT/config.example.yaml" > "$cfg"
+sed 's/privilege_learn_s: [0-9]*/privilege_learn_s: 20/' "$ROOT/config.example.yaml" > "$cfg"
 grep -q "privilege_learn_s: 20" "$cfg" || { echo "could not patch config" >&2; exit 1; }
 build
 export TREMOR_WAL_DIR="$OUT/wal-live-attacks" TREMOR_HMAC_KEY="live-attack-demo-key-0123456789ab"

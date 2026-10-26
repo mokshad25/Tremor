@@ -149,7 +149,7 @@ func (s *Server) Run(ctx context.Context) error {
 		}
 		allowed[ip] = true
 	}
-	procs, err := s.newProcessors(nShards, runID, alerts, allowed)
+	procs, err := s.newProcessors(nShards, runID, alerts, allowed, start.UnixNano())
 	if err != nil {
 		close(alerts)
 		<-alertsDone
@@ -338,10 +338,13 @@ func (s *Server) Run(ctx context.Context) error {
 
 // newProcessors builds each shard's chain: detection (Drain + engines),
 // plus the test-only processed log when configured.
-func (s *Server) newProcessors(n int, runID string, alerts chan<- detect.Alert, allowed map[string]bool) ([]shard.Processor, error) {
+func (s *Server) newProcessors(n int, runID string, alerts chan<- detect.Alert, allowed map[string]bool, startNs int64) ([]shard.Processor, error) {
 	procs := make([]shard.Processor, n)
 	for i := range procs {
-		dp := detect.NewProcessor(s.cfg.Detect, drain.TremorConfig(), func(a detect.Alert) { alerts <- a })
+		dp := detect.NewProcessor(s.cfg.Detect, drain.TremorConfig(), func(a detect.Alert) {
+			s.stampIngestToAlert(&a, time.Now().UnixNano(), startNs)
+			alerts <- a
+		})
 		dp.SetAllowedSources(allowed)
 		chain := shard.Chain{dp}
 		if dir := s.cfg.Testing.ProcessedLogDir; dir != "" {
@@ -357,6 +360,22 @@ func (s *Server) newProcessors(n int, runID string, alerts chan<- detect.Alert, 
 		s.log.Warn("testing.processed_log_dir is set: every processed seq is written to disk (test harness only)")
 	}
 	return procs, nil
+}
+
+// stampIngestToAlert measures ingest-to-alert latency: from the gateway
+// receive time of the alert's newest line to now, when the alert leaves
+// detection. It covers redaction, the WAL fsync and ack, routing, Drain and
+// the wait for the next 1 s tick. Only OPEN and ESCALATED alerts count:
+// resolutions are not alerts, and silence is triggered by the absence of
+// lines, so it has no line to measure from. Lines received before this
+// process started are WAL replay, not live traffic.
+func (s *Server) stampIngestToAlert(a *detect.Alert, nowNs, startNs int64) {
+	if a.EvidenceReceivedAt < startNs || a.Type == detect.SignalSilence ||
+		(a.Status != detect.StatusOpen && a.Status != detect.StatusEscalated) {
+		return
+	}
+	a.IngestToAlert = time.Duration(nowNs - a.EvidenceReceivedAt)
+	s.Hist.ObserveIngestToAlert(a.IngestToAlert.Seconds())
 }
 
 // consumeAlerts counts and logs every alert, then hands alerts and notices
@@ -410,7 +429,8 @@ func (s *Server) consumeAlerts(alerts <-chan detect.Alert, n *summarize.Notifier
 			"window_start", a.WindowStart, "window_end", a.WindowEnd,
 			"seq_first", a.SourceSeqs.First, "seq_last", a.SourceSeqs.Last,
 			"top_error_template", a.TopErrorTemplateText,
-			"mitre_attack", a.Techniques, "user", a.User, "source", a.Source)
+			"mitre_attack", a.Techniques, "user", a.User, "source", a.Source,
+			"ingest_to_alert_ms", float64(a.IngestToAlert.Microseconds())/1000)
 		if s.AlertHook != nil {
 			s.AlertHook(a)
 		}

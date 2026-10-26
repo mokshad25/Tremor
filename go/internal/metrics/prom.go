@@ -14,9 +14,10 @@ import (
 // Histograms that stages observe directly. A nil histogram is a no-op, so
 // tests can use zero-value structs.
 type Histograms struct {
-	WALFsync   prometheus.Histogram
-	WALWrite   prometheus.Histogram
-	LLMRequest prometheus.Histogram
+	WALFsync      prometheus.Histogram
+	WALWrite      prometheus.Histogram
+	LLMRequest    prometheus.Histogram
+	IngestToAlert prometheus.Histogram
 }
 
 // NewHistograms creates the latency histograms with buckets suited to each.
@@ -33,6 +34,11 @@ func NewHistograms() *Histograms {
 		LLMRequest: prometheus.NewHistogram(prometheus.HistogramOpts{
 			Name: "tremor_llm_request_seconds", Help: "LLM summary request latency (successful and failed calls).",
 			Buckets: []float64{0.1, 0.25, 0.5, 1, 2, 4, 8, 15, 30},
+		}),
+		IngestToAlert: prometheus.NewHistogram(prometheus.HistogramOpts{
+			Name:    "tremor_ingest_to_alert_seconds",
+			Help:    "Gateway receive time of an alert's newest line to the alert leaving detection (OPEN/ESCALATED, not silence).",
+			Buckets: []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 1.5, 2, 5},
 		}),
 	}
 }
@@ -57,6 +63,11 @@ func (h *Histograms) ObserveWALWrite(s float64) {
 func (h *Histograms) ObserveLLM(s float64) {
 	if h != nil {
 		observe(h.LLMRequest, s)
+	}
+}
+func (h *Histograms) ObserveIngestToAlert(s float64) {
+	if h != nil {
+		observe(h.IngestToAlert, s)
 	}
 }
 
@@ -103,7 +114,7 @@ func NewRegistry(h *Histograms, fams []Family) *prometheus.Registry {
 	reg := prometheus.NewRegistry()
 	reg.MustRegister(collectors.NewGoCollector(), collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	if h != nil {
-		reg.MustRegister(h.WALFsync, h.WALWrite, h.LLMRequest)
+		reg.MustRegister(h.WALFsync, h.WALWrite, h.LLMRequest, h.IngestToAlert)
 	}
 	c := &familyCollector{fams: fams}
 	for _, f := range fams {

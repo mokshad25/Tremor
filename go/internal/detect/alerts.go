@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 // SignalType names match the Python SignalType enum and the UI contract.
@@ -95,6 +96,15 @@ type Alert struct {
 
 	CreatedAt int64 `json:"created_at"` // unix seconds the incident opened
 	UpdatedAt int64 `json:"updated_at"` // unix seconds of this notification
+
+	// Ingest-to-alert latency, never serialized. EvidenceReceivedAt is the
+	// gateway receive time (unix nanos) of the alert's newest line,
+	// SourceSeqs.Last, when the processor knows it (0 otherwise): detection
+	// fills it from event data and reads no clock. IngestToAlert is set by
+	// the server from its wall clock when the alert leaves detection (0 when
+	// not measured).
+	EvidenceReceivedAt int64         `json:"-"`
+	IngestToAlert      time.Duration `json:"-"`
 }
 
 // SeqRange points back into the WAL: the seq range of lines in the alert's
