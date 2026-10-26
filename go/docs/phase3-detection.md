@@ -60,7 +60,7 @@ The non-ASCII difference is a known, documented divergence: Python's `\b` and `\
 
 **Per-service trees.** Python used one shared drain3 tree for all services; Go gives each service its own tree, owned by its shard. The algorithm is the same, but template IDs (`T1`, `T2`, ...) are now per service. That's what lets shards work independently, and it means one noisy service can't evict another's templates from the LRU. The drain3 comparison runs a single tree, so it is apples to apples.
 
-**Cost.** Mask + Drain is about 10.9 µs per message, of which **masking is 10.7 µs (98%)** and the tree 0.2 µs. That's five passes of Go's regexp, and it's the planned pprof-guided optimisation for Phase 7: a single-pass masker, checked against the same Python differential fixture.
+**Cost.** Mask + Drain was about 10.9 µs per message, of which **masking was 10.7 µs (98%)** and the tree 0.2 µs: five passes of Go's regexp. Phase 7 replaced them with a single hand-written scan (`mask.go` explains why it is exact). On the 100,473 real fixture messages, masking went from 7.8 µs to 0.66 µs (−92%, 21 → 1 allocations), and mask + Drain from 11.7 µs to 1.07 µs. The scan's output is byte-identical to the regexp implementation (kept in `mask_regex_test.go`) on all 130,473 fixture inputs and 19.4 million fuzzed inputs, and it still matches drain3 on every ASCII input. Numbers: `bench/results.md`, Phase 7.
 
 ### Detection (`internal/detect`)
 
