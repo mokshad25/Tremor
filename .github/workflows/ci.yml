@@ -77,6 +77,24 @@ jobs:
       - name: Build Docker image
         run: docker build -t tremor-frontend:ci .
 
+  go:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: go
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go/go.mod
+          cache-dependency-path: go/go.sum
+
+      - name: Vet, gofmt, race-enabled tests
+        run: make check GOFLAGS=-timeout=20m
+
   docker-build:
     runs-on: ubuntu-latest
     needs: lint-and-test
