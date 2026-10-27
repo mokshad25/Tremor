@@ -2,7 +2,7 @@
 
 A crash-safe, privacy-first security log pipeline: an individual Go rebuild of TREMOR, which began as a 4-person team project (Acentra Health Build to Care). The Python app, the React UI and their compose setup in the parent directory are unchanged.
 
-**Status: Phase 7 of 7, in progress.** Done so far:
+**Status: all 7 phases complete.** What it does:
 - ingestion over HTTP JSON and OTLP (HTTP and gRPC)
 - PII redaction before disk
 - a write-ahead log with ack-after-fsync and crash recovery
@@ -17,7 +17,7 @@ A crash-safe, privacy-first security log pipeline: an individual Go rebuild of T
 - ingest-to-alert latency measured per alert (`tremor_ingest_to_alert_seconds`, `bench/latency.sh`)
 - a pprof-guided single-pass keyword search in the redactor (−43% to −50% per event; redaction now costs 10–11% of full-pipeline throughput, inside the 15% target)
 
-Still open in Phase 7: the LLM summary scoring sheet (`bench/summaries/scoring-sheet.md`) is not yet filled in.
+LLM incident summaries were scored by hand: 44/44 named the right service and the right trigger (`bench/summaries/scoring-sheet.md`).
 
 ```
 producers ──HTTP / OTLP──▶ gateway ──▶ PII redaction ──▶ WAL (fsync, ack) ──▶ ring ──▶ shards ──▶ correlator ──▶ notifier ──▶ webhook / Slack

@@ -278,9 +278,11 @@ Incidents seen in the log during the run: brute force (sshd), credential stuffin
 | Final source | 44/44 LLM; 0 invalid outputs; 11 transient provider errors, all retried |
 | Expected service named | 44/44 (mechanical check) |
 | Tokens | 36,828 prompt + 18,688 completion |
-| Human scoring | `summaries/scoring-sheet.md`, to be filled in |
+| Human scoring | 44/44 right service, 44/44 right trigger (`summaries/scoring-sheet.md`, one rater: the author, 2026-10-27) |
 
 With the LLM disabled, every incident gets the template summary (`TestFallbackWithLLMDisabled`).
+
+The human score is one rater (the project's author), not a blind panel. The closest call is row 4 (`silence`): the summary names payment-gateway's silent stream and cites the SILENCE alert, but its stated likely trigger is a downstream dependency failure, inferred from the ledger errors in the same incident.
 
 ## Phase 7: pprof-guided masker, Vector and Fluent Bit (2026-10-26)
 
